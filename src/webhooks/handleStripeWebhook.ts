@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import stripe from "../config/stripe";
 import config from "../config";
 import { handlePurchaseCheckout } from "../handlers/handlePurchaseCheckout";
+import { handleSubscriptionCreated } from "../handlers/handleSubscriptionCreated";
+import Stripe from "stripe";
 
 export const handleStripeWebhook = async (req: Request, res: Response) => {
     try {
@@ -9,9 +11,8 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
         let event = await stripe.webhooks.constructEvent(req.body, sig!, config.stripe.webhook_secret!);
 
         switch (event.type) {
-            case 'checkout.session.completed':
-                const session = event.data.object;
-                await handlePurchaseCheckout(session);
+            case "customer.subscription.created":
+                await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
                 break;
             default:
                 console.log(`Unhandled event type ${event.type}`);

@@ -24,7 +24,19 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'User logged in successfully.',
-    data: result.createToken,
+    data: result,
+  });
+});
+
+const socialSignIn = catchAsync(async (req: Request, res: Response) => {
+  const { ...socialData } = req.body;
+  const result = await AuthService.socialSignInToDB(socialData?.email);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User logged in successfully.',
+    data: result,
   });
 });
 
@@ -72,4 +84,5 @@ export const AuthController = {
   forgetPassword,
   resetPassword,
   changePassword,
+  socialSignIn,
 };

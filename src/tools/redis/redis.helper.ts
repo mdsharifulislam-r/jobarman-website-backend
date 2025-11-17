@@ -1,34 +1,67 @@
 import { redisClient } from "../../config/redis";
 
-const redisSet = async (key: string, value: any) => {
-  await redisClient.set(key, JSON.stringify(value), "EX", 60);
-  return true;
+const redisSet = async (key: string, value: any, query?: Record<string, any>, ttl: number=60) => {
+  const queryString = new URLSearchParams(query as Record<string, string>).toString();
+  
+  
+  await redisClient.set(`${key}:${queryString||'1'}`, JSON.stringify(value), "EX",ttl);
+  return false;
 };
 
-const redisGet = async (key: string) => JSON.parse(await redisClient.get(key)||"[]");
+const redisGet = async (key: string, query?: Record<string, any>) => {
+  const queryString = new URLSearchParams(query as Record<string, string>).toString();
+  const data = JSON.parse(await redisClient.get(`${key}:${queryString||'1'}`) || "[]");
 
-const redisHset = async (key: string, field: string, value: any) => await redisClient.hset(key,field, JSON.stringify(value));
+  if (Array.isArray(data) && !data.length) {
+    return null;
+  }
 
-const redisHget = async (key: string, field: string) => JSON.parse(await redisClient.hget(key, field) || '[]');
+  return data;
+};
+
+const redisHset = async (key: string, query: Record<string, any>, value: any, ttl: number=60) => {
+  const field = new URLSearchParams(query as Record<string, string>).toString();
+  await redisClient.hset(key, field, JSON.stringify(value), "EX",ttl);
+};
+
+const redisHget = async (key: string, query: Record<string, any>) => {
+  const field = new URLSearchParams(query as Record<string, string>).toString();
+  const data = JSON.parse(await redisClient.hget(key, field) || "[]");
+  if (Array.isArray(data) && !data.length) {
+    return null;
+  }
+  return data;
+};
 
 const keyDelete = async (pattern: string) => {
-  const keys = await redisClient.keys(pattern);
-  console.log(keys);
-  
-  if(!keys.length) return
-  console.log(keys);
-  
-  await redisClient.del(keys);
-}
+  const keys = await redisClient.scanStream({ match: pattern }).toArray();
 
+  console.log(keys);
+  
+  
+  if (!keys?.flat().length) return;
+
+  // Use pipeline for efficient deletion
+  const pipeline = redisClient.multi();
+  keys.forEach((key) => pipeline.del(key));
+  await pipeline.exec();
+};
+
+// ✅ Fixed HKeyDelete function
 const HKeyDelete = async (key: string) => {
-  const keys = await redisClient.hkeys(key);
-
+  const fields = await redisClient.hkeys(key);
+  console.log('Fields to delete:', fields);
   
-  if(!keys.length) return
+  if (!fields.length) return;
 
-  
-  await redisClient.hdel(key,...keys);
-}
+  await redisClient.hdel(key, ...fields);
+};
 
-export const RedisHelper = { redisSet, redisGet, redisHset, redisHget, keyDelete, HKeyDelete };
+export const RedisHelper = {
+  redisSet,
+  redisGet,
+  redisHset,
+  redisHget,
+  keyDelete,
+  HKeyDelete,
+};

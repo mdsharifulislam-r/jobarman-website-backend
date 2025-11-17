@@ -32,9 +32,14 @@ router.post(
 
 router.post(
   '/change-password',
-  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  auth(),
   validateRequest(AuthValidation.createChangePasswordZodSchema),
   AuthController.changePassword
+);
+
+router.post(
+  '/social-sign-in',
+  AuthController.socialSignIn
 );
 
 export const AuthRoutes = router;

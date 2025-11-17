@@ -27,4 +27,10 @@ export default {
     secret_key: process.env.STRIPE_API_SECRET,
     webhook_secret: process.env.WEBHOOK_SECRET,
   },
+  apple: {
+    password: process.env.APPLE_PASSWORD,
+  },
+  openAi: {
+    key: process.env.OPENAI_API_KEY,
+  },
 };

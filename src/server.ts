@@ -23,7 +23,7 @@ async function main() {
     //Seed Super Admin after database connection is successful
     await seedSuperAdmin();
     // await loadConsumer() if you using kafka
-
+  loadConsumer();
     const port =
       typeof config.port === 'number' ? config.port : Number(config.port);
 

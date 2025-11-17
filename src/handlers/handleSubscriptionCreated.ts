@@ -3,10 +3,10 @@ import Stripe from "stripe";
 
 
 import stripe from "../config/stripe";
-
-const Package = "" as any
-const Subscription = "" as any
-const User = "" as any
+import { Package } from "../app/modules/package/package.model";
+import { User } from "../app/modules/user/user.model";
+import { Subscription } from "../app/modules/subscription/subscription.model";
+import { RedisHelper } from "../tools/redis/redis.helper";
 
 
 export const handleSubscriptionCreated = async (event: Stripe.Subscription) => {
@@ -16,6 +16,8 @@ export const handleSubscriptionCreated = async (event: Stripe.Subscription) => {
         // console.log(event);
         
         const subscription = await stripe.subscriptions.retrieve(event.id);
+        console.log(subscription);
+        
         if(!subscription){
             console.log("subscription not found");
             return
@@ -28,7 +30,7 @@ export const handleSubscriptionCreated = async (event: Stripe.Subscription) => {
             console.log("price_id not found");
             return
         }
-        const packageData = await Package.findOne({price_id});
+        const packageData = await Package.findOne({priceId:price_id}).lean();
         if(!packageData){
             console.log("package not found");
             return
@@ -55,9 +57,8 @@ export const handleSubscriptionCreated = async (event: Stripe.Subscription) => {
             await Subscription.findByIdAndUpdate(user.subscription,{status:"inactive"},{session:mongooseSession})
         }
 
-        const startDate = new Date();
-        const endDate = packageData.recurring =="week"? new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000):packageData.recurring=="month"? new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000):new Date(startDate.getTime() + 365 * 24 * 60 * 60 * 1000)
-        
+        const startDate = new Date(subscription.start_date * 1000)
+        const endDate = packageData.recurring == "month"? new Date(new Date().setMonth(new Date().getMonth() + 1)):new Date(new Date().setFullYear(new Date().getFullYear() + 1))
 
         const newSubscription = await Subscription.create({
             subscriptionId: event.id,
@@ -67,6 +68,8 @@ export const handleSubscriptionCreated = async (event: Stripe.Subscription) => {
             startDate:startDate,
             endDate:endDate,
             price:packageData.price,
+            txId:subscription.id,
+            name:packageData.name
         })
 
 
@@ -78,6 +81,9 @@ export const handleSubscriptionCreated = async (event: Stripe.Subscription) => {
         await mongooseSession.commitTransaction()
         await mongooseSession.endSession()
 
+        console.log("subscription Successfull");
+        await RedisHelper.HKeyDelete(`user:${user._id}:transactions`);
+        
     
         
     } catch (error) {

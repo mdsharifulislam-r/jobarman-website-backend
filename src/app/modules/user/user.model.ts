@@ -4,7 +4,26 @@ import { model, Schema } from 'mongoose';
 import config from '../../../config';
 import { USER_ROLES } from '../../../enums/user';
 import ApiError from '../../../errors/ApiError';
-import { IUser, UserModal } from './user.interface';
+import { IEducation, IGallary, IGallaryModal, IUser, IWorkExperience, UserModal } from './user.interface';
+
+const educationSchema = new Schema<IEducation>({
+  degree:String,
+  institute:String,
+  startDate:Date,
+  endDate:Date,
+  passingYear:Number,
+  grade:String,
+})
+
+const workExperienceSchema = new Schema<IWorkExperience>({
+  title: String,
+  company: String,
+  startDate: Date,
+  endDate: Date,
+  description: String,
+  location: String,
+  isCurrentJob: Boolean,
+})
 
 const userSchema = new Schema<IUser, UserModal>(
   {
@@ -42,6 +61,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: Boolean,
       default: false,
     },
+    isSocialLogin: {
+      type: Boolean,
+      default: false,
+    },
     authentication: {
       type: {
         isResetPassword: {
@@ -59,6 +82,85 @@ const userSchema = new Schema<IUser, UserModal>(
       },
       select: 0,
     },
+    subscription:{
+      type:Schema.Types.ObjectId,
+      ref:'Subscription'
+    },
+    bio: {
+      type: String,
+    },
+    cover: {
+      type: String,
+    },
+    about_us: {
+      type: String,
+    },
+    mission: {
+      type: String,
+    },
+    overview: {
+      type: {
+        total_employees: {
+          type: Number,
+        },
+        company_type: {
+          type: String,
+        },
+        founded: {
+          type: Number,
+        },
+        revenue: {
+          type: String,
+        },
+      },
+     
+    },
+    contactInfo:{
+      type:{
+        website: {
+          type: String,
+        },
+        address: {
+          type: String,
+        },
+        contact: {
+          type: String,
+        },
+        email: {
+          type: String,
+        },
+      }
+    },
+    educations:[educationSchema],
+    workExperiences:[workExperienceSchema],
+    address: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+    date_of_birth: {
+      type: Date,
+    },
+    gender: {
+      type: String,
+    },
+    nationality: {
+      type: String,
+    },
+    language: {
+      type: String,
+    },
+    linkedin: {
+      type: String,
+    },
+    designation : {
+      type: String,
+    },
+    skills: {
+      type: [String],
+    },
+    
   },
   { timestamps: true }
 );
@@ -98,4 +200,18 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+
 export const User = model<IUser, UserModal>('User', userSchema);
+
+const gallerySchema = new Schema<IGallary, IGallaryModal>({
+  image: {
+    type: String,
+    required: true,
+  },
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+},{timestamps:true});
+export const Gallery = model<IGallary, IGallaryModal>('Gallery', gallerySchema);

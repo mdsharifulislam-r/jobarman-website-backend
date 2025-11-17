@@ -33,6 +33,12 @@ const fileUploadHandler = () => {
         case 'doc':
           uploadDir = path.join(baseUploadDir, 'doc');
           break;
+        case "cover":
+          uploadDir = path.join(baseUploadDir, 'cover');
+          break;
+        case "resume":
+          uploadDir = path.join(baseUploadDir, 'resume');
+          break;
         default:
           throw new ApiError(StatusCodes.BAD_REQUEST, 'File is not supported');
       }
@@ -55,7 +61,7 @@ const fileUploadHandler = () => {
 
   //file filter
   const filterFilter = (req: Request, file: any, cb: FileFilterCallback) => {
-    if (file.fieldname === 'image') {
+    if (file.fieldname === 'image' || file.fieldname === 'cover') {
       if (
         file.mimetype === 'image/jpeg' ||
         file.mimetype === 'image/png' ||
@@ -81,7 +87,7 @@ const fileUploadHandler = () => {
           )
         );
       }
-    } else if (file.fieldname === 'doc') {
+    } else if (file.fieldname === 'doc' || file.fieldname === 'resume') {
       if (file.mimetype === 'application/pdf') {
         cb(null, true);
       } else {
@@ -99,6 +105,8 @@ const fileUploadHandler = () => {
     { name: 'image', maxCount: 3 },
     { name: 'media', maxCount: 3 },
     { name: 'doc', maxCount: 3 },
+    { name: 'cover', maxCount: 1 },
+    { name: 'resume', maxCount: 1 },
   ]);
   return upload;
 };
