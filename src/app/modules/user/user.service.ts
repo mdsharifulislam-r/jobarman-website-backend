@@ -7,8 +7,10 @@ import { emailTemplate } from '../../../shared/emailTemplate';
 import unlinkFile from '../../../shared/unlinkFile';
 import generateOTP from '../../../util/generateOTP';
 import { IEducation, IUser, IWorkExperience } from './user.interface';
-import { Gallery, User } from './user.model';
+import { Gallery, ResumeAnalysis, User } from './user.model';
 import { log } from 'winston';
+import { openAiFileUpload } from '../../../helpers/openAiHelper';
+import { AIHelper } from '../../../helpers/aiHelper';
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
   //set role
@@ -197,6 +199,21 @@ const deleteWorkExperienceOfUser = async (user: JwtPayload, id: string) => {
   return workExperience;
 };
 
+const anlaizeUserResume = async (cvPath:string,id:string) => {
+  const fileId = await openAiFileUpload(cvPath);
+  const result = await AIHelper.analizeResumeHelper(fileId!);
+  const io = (global as any ).io;
+  io.emit(`resume-analysis::${id}`,result);
+  await ResumeAnalysis.updateOne({_id:id},{analysis:result,status:"completed"},{upsert:true});
+
+  return result;
+}
+
+const getResultOfResumeAnalysis = async (id:string) => {
+  const result = await ResumeAnalysis.findById(id);
+  return result;
+}
+
 export const UserService = {
   createUserToDB,
   getUserProfileFromDB,
@@ -209,5 +226,7 @@ export const UserService = {
   deleteEducationOfUser,
   addWorkExperienceOfUser,
   updateWorkExperienceOfUser,
-  deleteWorkExperienceOfUser
+  deleteWorkExperienceOfUser,
+  anlaizeUserResume,
+  getResultOfResumeAnalysis
 };

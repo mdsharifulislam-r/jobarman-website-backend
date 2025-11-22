@@ -35,8 +35,17 @@ export const applicationConsumer = async () => {
                await Application.findOneAndUpdate({ _id: application._id }, { jobMatch: percentage.matchPercentage }, { new: true });
                 break;
             case "update":
+              await ApplicationServices.updateApplicationStatusToDB(data.data._id, data.data.status,data.data);
                 break;
             case "delete":
+                await ApplicationServices.deleteApplicationFromDB(data.data._id,data.data.user);
+                break;
+            case "feedback":
+               await ApplicationServices.feedBackOfInterview(data.data._id,data.data);
+                break;
+            case "autoApply":
+                const {user:Iuser,percentage:percentageNumber,filePath,title} = data.data;
+                const autoApply = await ApplicationServices.autoApplyForJobPosts(Iuser, filePath, title, percentageNumber,data.data._id);
                 break;
             default:
                 console.log("Invalid type");

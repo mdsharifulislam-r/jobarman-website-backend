@@ -12,21 +12,23 @@ const router = express.Router();
 //     auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
 //     NotificationController.adminNotificationFromDB
 // );
-router.patch(
-  "/:id",
+router.get(
+  "/",
   auth(),
-  NotificationController.updateNotificationById
+  NotificationController.getAllNotification
 );
 router.patch(
   "/",
   auth(),
   NotificationController.markAllNotification
 );
-router.get(
-  "/",
+router.patch(
+  "/:id",
   auth(),
-  NotificationController.getAllNotification
+  NotificationController.updateNotificationById
 );
+
+
 
 // router.patch('/admin',
 //     auth(USER_ROLES.USER),

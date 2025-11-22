@@ -7,6 +7,8 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import { RedisHelper } from '../../../tools/redis/redis.helper';
 import { redisClient } from '../../../config/redis';
 import { USER_ROLES } from '../../../enums/user';
+import { Application } from '../application/application.model';
+import { APPLICATION_STATUS } from '../../../enums/application';
 
 const createPostIntoDB = async (post: IPost): Promise<IPost> => {
     const result = await Post.create(post);
@@ -93,11 +95,45 @@ const getPostsFromDB = async (query:Record<string,any>,user:JwtPayload) => {
 }
 
 
+const getPostInsigtsFromDB = async (postId:string,days:number=30) => {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+
+    const post = await Post.findById(postId);
+    if(!post){
+        throw new ApiError(404,'Post not found');
+    }
+
+
+    
+    
+    const applicationsCount = await Application.countDocuments({post:postId,createdAt:{$gte:date}})
+    const hiredCount = await Application.countDocuments({post:postId,hiringStatus:'hired',createdAt:{$gte:date}})
+    const rejectedCount = await Application.countDocuments({post:postId,status:APPLICATION_STATUS.REJECTED,createdAt:{$gte:date}})
+    const engagedCount = applicationsCount? Math.round((hiredCount+rejectedCount)/(applicationsCount)*100):0;
+    const recentApplications = await Application.find({post:postId,createdAt:{$gte:date}},{post:1,user:1,status:1,jobMatch:1,createdAt:1}).populate('user','name email image bio designation').sort({createdAt:-1}).limit(10);
+    const recentQualifiedApplications = await Application.find({post:postId,status:[APPLICATION_STATUS.SHORTLISTED,APPLICATION_STATUS.INTERVIEW],createdAt:{$gte:date}},{post:1,user:1,status:1,jobMatch:1,createdAt:1}).populate('user','name email image bio designation').sort({createdAt:-1}).limit(10);
+
+    return {
+        summary:{
+            total: applicationsCount,
+            qualified:hiredCount,
+            rejected:rejectedCount,
+            engaged:engagedCount
+        },
+        recentApplications,
+        recentQualifiedApplications
+    }
+
+}
+
+
 
 export const PostServices = {
     createPostIntoDB,
     updatePostToDB,
     deletePostFromDB,
     postFeedFromDb,
-    getPostsFromDB
+    getPostsFromDB,
+    getPostInsigtsFromDB
 };

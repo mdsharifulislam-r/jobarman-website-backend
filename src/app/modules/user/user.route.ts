@@ -75,4 +75,18 @@ router
     auth(USER_ROLES.EMPLOYEE),
     UserController.updateWorkExperience
   )
+router
+  .route('/analyze-resume')
+  .post(
+    auth(),
+    fileUploadHandler(),
+    validateRequest(UserValidation.analyzeResumeZodSchema),
+    UserController.anlaizeUserResume
+  )
+router
+  .route('/analyze-resume/:id')
+  .get(
+    auth(),
+    UserController.getResultOfResumeAnalysis
+  )
 export const UserRoutes = router;

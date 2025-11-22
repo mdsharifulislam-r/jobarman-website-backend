@@ -9,6 +9,11 @@ import { DisclaimerRoutes } from '../app/modules/disclaimer/disclaimer.route';
 import { SupportRoutes } from '../app/modules/support/support.route';
 import { ResumeRoutes } from '../app/modules/resume/resume.route';
 import { ApplicationRoutes } from '../app/modules/application/application.route';
+import { ChatRoutes } from '../app/modules/chat/chat.routes';
+import { MessageRoutes } from '../app/modules/message/message.routes';
+import { NotificationRoutes } from '../app/modules/notification/notification.routes';
+import { SpotlightRoutes } from '../app/modules/spotlight/spotlight.route';
+import { ReviewRoutes } from '../app/modules/review/review.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -52,6 +57,26 @@ const apiRoutes = [
   {
     path:"/application",
     route: ApplicationRoutes
+  },
+  {
+    path:"/chat",
+    route: ChatRoutes
+  },
+  {
+    path:"/message",
+    route: MessageRoutes
+  },
+  {
+    path:"/notification",
+    route: NotificationRoutes
+  },
+  {
+    path:"/spotlight",
+    route: SpotlightRoutes
+  },
+  {
+    path:"/review",
+    route: ReviewRoutes
   }
 
 ];

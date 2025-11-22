@@ -1,3 +1,4 @@
+import { IPost } from "../app/modules/post/post.interface";
 import { Post } from "../app/modules/post/post.model";
 import { User } from "../app/modules/user/user.model";
 import { chatbot } from "../config/open-ai.config";
@@ -63,7 +64,179 @@ The response must strictly follow this format:
     return result
 };
 
+
+const demoPostData = {
+    _id:"64b8f4f5f1d2c2a5e4b6c7d8",
+    title:"Software Engineer",
+    description:"We are looking for a skilled Software Engineer to join our team.",
+    status:"active",
+    category:"64b8f4f5f1d2c2a5e4b6c7d8",
+    job_type:"full-time",
+    job_level:"senior",
+    recruiter:"64b8f4f5f1d2c2a5e4b6c7d8",
+    experience_level:"experienced",
+    min_salary:50000,
+    max_salary:80000,
+    location:"New York, USA",
+    required_skills:["JavaScript", "React", "Node.js"],
+    deadline:new Date(),
+    is_deleted:false
+}
+
+const getJobMatchAutoApplyPersentances = async (userId:string,percentage:number,fileId:string,posts:IPost[]) => {
+  console.log('ai is starting the auto apply calculation');
+    const user = await User.findById(userId)?.lean();
+    if(!user){
+        return [];
+    }
+
+    const skills = user.skills || [];
+    const education = user.educations || [];
+    const workExperiences = user.workExperiences || [];
+
+    const prompt = `
+Here is the user profile data:
+
+userSkills: ${encode(skills)}
+userEducation: ${encode(education)}
+userWorkExperience: ${encode(workExperiences)}
+fileId: ${fileId}
+percentage: ${percentage}
+
+Here is the list of posts:
+posts: ${encode(posts)}
+
+Compare the user’s skills, education, and work experience with each post’s required skills, education, and work experience. Determine which posts the user matches with at least the given percentage or higher. Return only the list of matched posts.
+and calculate how well the user matches each post and give the match percentage in jobMatch field.
+The response must strictly follow this format :
+${JSON.stringify({
+  matchedPosts: [
+    demoPostData
+  ]
+})}
+
+    `
+  const response = await chatbot.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: "You are a job recommendation engine. Return only valid JSON." },
+      { role: "user", content:[
+        {
+          type: "text",
+          text: prompt
+        },
+        {
+          type: "file",
+          file:{
+            file_id: fileId
+          }
+          
+        }
+      ] }
+    ]
+  });
+
+  const raw = response.choices[0].message.content || "";
+
+  const clean = raw.replace(/\n/g, "").replace(/```json|```/g, "").trim();
+  const result = JSON.parse(clean);
+  console.log('ai auto apply calculation result:', result);
+    return result.matchedPosts as IPost[]
+}
+
+const analizeResumeHelper = async (fileId: string) => {
+  const prompt = `
+  You are an advanced Resume Analyzer. Analyze the resume provided in the file below and generate a detailed scorecard.
+
+file_id: ${fileId}
+
+Your task:
+1. Read and extract all content from the resume.
+2. Evaluate the resume based on the following scoring criteria:
+   - Keyword relevance
+   - Skills match
+   - Work experience strength
+   - Education relevance
+   - Structure, clarity, and formatting
+3. Each category should be scored between 0–20.
+4. Calculate totalScore = sum of all category scores (0–100).
+5. Provide improvement suggestions based only on the resume.
+
+Return the response strictly in the following JSON format:
+
+{
+  "totalScore": <0-100>,
+
+  "breakdown": [
+    {
+      "title": "Keyword Score",
+      "score": <0-20>,
+      "description": "Brief explanation based on the resume content."
+    },
+    {
+      "title": "Skills Match Score",
+      "score": <0-20>,
+      "description": "Brief explanation based on the resume content."
+    },
+    {
+      "title": "Experience Score",
+      "score": <0-20>,
+      "description": "Brief explanation based on the resume content."
+    },
+    {
+      "title": "Education Score",
+      "score": <0-20>,
+      "description": "Brief explanation based on the resume content."
+    },
+    {
+      "title": "Structure & Formatting Score",
+      "score": <0-20>,
+      "description": "Brief explanation based on the resume formatting and readability."
+    }
+  ],
+
+  "improvements": [
+    "Provide 5–7 clear, actionable suggestions to improve the resume."
+  ]
+}
+
+Rules:
+- Do not create information that does not exist in the resume.
+- Keep explanations short and professional.
+- Output ONLY the JSON. No extra text.
+`
+const result = await chatbot.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: "You are a job recommendation engine. Return only valid JSON." },
+      { role: "user", content:[
+        {
+          type: "text",
+          text: prompt
+        },
+        {
+          type: "file",
+          file:{
+            file_id: fileId
+          }
+          
+        }
+      ] }
+    ]
+  });
+
+  const raw = result.choices[0].message.content || "";
+
+  const clean = raw.replace(/\n/g, "").replace(/```json|```/g, "").trim();
+  const cleanResult = JSON.parse(clean);
+  console.log('ai auto apply calculation result:', cleanResult);
+    return cleanResult
+
+}
+
 export const AIHelper = {
   askAI,
-  getJobMatchPercentances
+  getJobMatchPercentances,
+  getJobMatchAutoApplyPersentances,
+  analizeResumeHelper
 };

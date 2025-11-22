@@ -17,6 +17,9 @@ router.route("/feed")
 router.route("/feed/user")
     .get(auth(), PostController.getPosts)
 
+router.route("/insights/:id")
+    .get(auth(USER_ROLES.RECRUITER), PostController.getPostInsigts)
+
 router.route("/:id")
     .patch(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.updatePostZodSchema), PostController.updatePost)
     .delete(auth(USER_ROLES.RECRUITER), PostController.deletePost)

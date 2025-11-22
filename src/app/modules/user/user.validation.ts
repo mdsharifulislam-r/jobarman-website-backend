@@ -46,9 +46,16 @@ const addWorkExperienceZodSchema = z.object({
   }),
 })
 
+const analyzeResumeZodSchema = z.object({
+  body: z.object({
+    resume: z.any({ required_error: 'Resume file is required' }),
+  }),
+})
+
 export const UserValidation = {
   createUserZodSchema,
   updateUserZodSchema,
   addEducationZodSchema,
-  addWorkExperienceZodSchema
+  addWorkExperienceZodSchema,
+  analyzeResumeZodSchema
 };

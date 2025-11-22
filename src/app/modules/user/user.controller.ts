@@ -4,6 +4,8 @@ import catchAsync from '../../../shared/catchAsync';
 import { getSingleFilePath } from '../../../shared/getFilePath';
 import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
+import { ResumeAnalysis } from './user.model';
+import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.producer';
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -180,6 +182,32 @@ const updateWorkExperience = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+const anlaizeUserResume = catchAsync(async (req: Request, res: Response) => {
+  const filePath = getSingleFilePath(req.files, 'resume');
+  const resumeAnalysis= await ResumeAnalysis.create({
+    user: req.user.id,
+    filePath: filePath!,
+  });
+  await kafkaProducer.sendMessage("resume", {type:"analyze",data:{id:resumeAnalysis._id,fileId:filePath}});
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Resume analyzed successfully',
+    data: resumeAnalysis,
+  });
+});
+
+const getResultOfResumeAnalysis = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await ResumeAnalysis.findById(id);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Resume analysis result fetched successfully',
+    data: result,
+  });
+});
 export const UserController = {
   createUser,
   getUserProfile,
@@ -193,4 +221,6 @@ export const UserController = {
   addworkExperience,
   deleteWorkExperience,
   updateWorkExperience,
+  anlaizeUserResume,
+  getResultOfResumeAnalysis
 };

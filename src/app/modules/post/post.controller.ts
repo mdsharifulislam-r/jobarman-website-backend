@@ -75,11 +75,23 @@ const getPosts = catchAsync(async (req: Request, res: Response) => {
 })
 
 
+const getPostInsigts = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await PostServices.getPostInsigtsFromDB(id,Number(req.query.days) || 30);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Post insights fetched successfully',
+        data: result,
+    });
+})
+
 export const PostController = {
     createPost,
     updatePost,
     deletePost,
     getPostFeed,
-    getPosts
+    getPosts,
+    getPostInsigts
 
 };

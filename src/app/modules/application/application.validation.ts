@@ -18,6 +18,42 @@ const createApplicationZodSchema = z.object({
     doc: z.array(z.any()).optional(),
   }),
 })
+
+const changeStatusSchema = z.object({
+  params: z.object({
+    id: z.string().refine((v) => Types.ObjectId.isValid(v), { message: 'Id must be a valid ObjectId' }),
+  }),
+  body: z.object({
+    status: z.nativeEnum(APPLICATION_STATUS),
+    reason: z.string().optional(),
+    interviewDetails: z.object({
+      date: z.string().optional(),
+      time: z.string().optional(),
+      interview_type: z.enum(['remote', 'onsite']).optional()
+    }).optional()
+  })
+})
+
+const sendFeedBackSchema = z.object({
+  params: z.object({
+    id: z.string().refine((v) => Types.ObjectId.isValid(v), { message: 'Id must be a valid ObjectId' }),
+  }),
+  body: z.object({
+    feedback: z.string(),
+    hiringStatus: z.enum(['on hold', 'hired', 'rejected', 'shortlisted'])
+  })
+})
+
+const autoApplySchema = z.object({
+  body: z.object({
+    percentage: z.string().refine((v) => !isNaN(Number(v)) && Number(v) >=0 && Number(v) <=100, { message: 'Percentage must be a number between 0 and 100' }),
+    title: z.string().min(2, { message: 'Title must be at least 2 characters' }),
+    resume: z.any(),
+  }),
+})
 export const ApplicationValidations = {
-  createApplicationZodSchema
+  createApplicationZodSchema,
+  changeStatusSchema,
+  sendFeedBackSchema,
+  autoApplySchema
 };

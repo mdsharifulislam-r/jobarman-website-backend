@@ -4,7 +4,7 @@ import { model, Schema } from 'mongoose';
 import config from '../../../config';
 import { USER_ROLES } from '../../../enums/user';
 import ApiError from '../../../errors/ApiError';
-import { IEducation, IGallary, IGallaryModal, IUser, IWorkExperience, UserModal } from './user.interface';
+import { IEducation, IGallary, IGallaryModal, IResumeAnalysis, IResumeAnalysisModal, IUser, IWorkExperience, UserModal } from './user.interface';
 
 const educationSchema = new Schema<IEducation>({
   degree:String,
@@ -215,3 +215,27 @@ const gallerySchema = new Schema<IGallary, IGallaryModal>({
   },
 },{timestamps:true});
 export const Gallery = model<IGallary, IGallaryModal>('Gallery', gallerySchema);
+
+const resumeAnalysisSchema = new Schema<IResumeAnalysis, IResumeAnalysisModal>({
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  filePath: {
+    type: String,
+    required: true,
+  },
+  analysis: {
+    type: Schema.Types.Mixed,
+    required: false,
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'completed'],
+    default: 'pending',
+  },
+},{timestamps:true});
+export const ResumeAnalysis = model<IResumeAnalysis, IResumeAnalysisModal>('ResumeAnalysis', resumeAnalysisSchema);
+
+

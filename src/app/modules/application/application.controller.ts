@@ -7,7 +7,7 @@ import { Post } from '../post/post.model';
 import ApiError from '../../../errors/ApiError';
 import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.producer';
 import { getMultipleFilesPath, getSingleFilePath } from '../../../shared/getFilePath';
-import { Application } from './application.model';
+import { Application, AutoApply } from './application.model';
 import { APPLICATION_STATUS } from '../../../enums/application';
 const createApplication = catchAsync(async (req: Request, res: Response) => {
     const { ...applicationData } = req.body;
@@ -51,6 +51,8 @@ const getApplications = catchAsync(async (req: Request, res: Response) => {
 const updateStatusOfApplications = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const body= req.body;
+
+    
     const application = await Application.findById(id);
         if(!application){
         throw new ApiError(404, 'Application not found');
@@ -62,6 +64,30 @@ const updateStatusOfApplications = catchAsync(async (req: Request, res: Response
     if([APPLICATION_STATUS.REJECTED,APPLICATION_STATUS.INTERVIEW].includes(application.status)){
         throw new ApiError(403, 'You can not update this application');
     }
+     if(body.status == APPLICATION_STATUS.REJECTED){
+        if(!body.rejectedReason){
+            throw new ApiError(400, 'Rejected reason is required');
+        }
+       
+    }
+
+    
+
+    if(body.status === APPLICATION_STATUS.INTERVIEW){
+        if(!body.interviewDetails){
+            throw new ApiError(400, 'Interview details are required');
+        }
+
+        if(new Date(body.interviewDetails.date)< new Date()){
+            throw new ApiError(400, 'Interview date is in the past');
+        }
+
+        body.interviewDetails.date = new Date(`${body.interviewDetails.date} ${body.interviewDetails.time}`);
+       
+
+    }
+
+    await kafkaProducer.sendMessage("application", {type:"update",data:{_id:id,...body}});
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -70,8 +96,67 @@ const updateStatusOfApplications = catchAsync(async (req: Request, res: Response
     });
 })
 
+const deleteApplication = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+   await ApplicationServices.deleteApplicationFromDB(id as any,req.user);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Application deleted successfully',
+        data: id
+    });
+})
+
+
+const sendFeedBackofInterview = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const body= req.body;
+    await kafkaProducer.sendMessage("application", {type:"feedback",data:{_id:id,...body}});
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Feedback sent successfully',
+        data: body
+    });
+})
+
+
+const autoApplyFeaturesForUser = catchAsync(async (req: Request, res: Response) => {
+    const {percentage,title } = req.body;
+    const filePath = getSingleFilePath(req.files, 'resume');
+    const autoApply = await AutoApply.create({
+        user: req.user.id,
+        percentage,
+        filePath: filePath!,
+        title,
+    });
+    await kafkaProducer.sendMessage("application", {type:"autoApply",data:{user:req.user,percentage,filePath,title,_id:autoApply._id}});
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Auto apply process started successfully',
+        data: autoApply
+    });
+})
+
+const autoApplyResultsForUser = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const data = await ApplicationServices.getAutoApplyResults(id);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Auto apply results fetched successfully',
+        data: data
+    });
+})
 
 export const ApplicationController = {
     createApplication,
-    getApplications
+    getApplications,
+    updateStatusOfApplications,
+    deleteApplication,
+    sendFeedBackofInterview,
+    autoApplyFeaturesForUser,
+    autoApplyResultsForUser
+
 };

@@ -1,5 +1,6 @@
 import { IResume } from '../../../../app/modules/resume/resume.interface';
 import { ResumeServices } from '../../../../app/modules/resume/resume.service';
+import { UserService } from '../../../../app/modules/user/user.service';
 import { kafkaConsumer } from '../../kafka-producers/kafka.consumer';
 
 export const ResumeConsumer = async () => {
@@ -18,6 +19,10 @@ export const ResumeConsumer = async () => {
               break;
             case 'delete':
               await ResumeServices.deleteResumeFromDB(data.data._id);
+              break;
+            case 'analyze':
+              const { id, fileId } = data.data;
+              const result = await UserService.anlaizeUserResume(fileId, id);
               break;
           }
         } catch (error) {

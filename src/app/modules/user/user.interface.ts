@@ -75,4 +75,14 @@ export type UserModal = {
   isMatchPassword(password: string, hashPassword: string): boolean;
 } & Model<IUser>;
 
+
+export type IResumeAnalysis = {
+  user: Types.ObjectId,
+  filePath: string,
+  analysis: any,
+  status?: 'pending' | 'completed'
+}
+
+export type IResumeAnalysisModal = Model<IResumeAnalysis>;
+
 export type IGallaryModal = Model<IGallary>;
