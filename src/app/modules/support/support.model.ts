@@ -8,8 +8,9 @@ const supportSchema = new Schema<ISupport, SupportModel>({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   images: { type: [String], required: false },
   docs: { type: [String], required: false },
-  status: { type: String, enum: ['pending', 'closed'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'resolved'], default: 'pending' },
   supportId: { type: String, required: false },
+  reply: { type: String, required: false },
 },{
   timestamps: true
 });

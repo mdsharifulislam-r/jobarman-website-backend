@@ -17,6 +17,11 @@ export type IPost = {
   required_skills: string[];
   deadline: Date;
   is_deleted: boolean;
+  gioLocation?:{
+    type: "Point",
+    coordinates: [number, number]
+  }
+  
 };
 
 export type PostModel = Model<IPost>;

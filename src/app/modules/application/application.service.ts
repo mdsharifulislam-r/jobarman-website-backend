@@ -14,6 +14,7 @@ import { User } from '../user/user.model';
 import { Post } from '../post/post.model';
 import { openAiFileUpload } from '../../../helpers/openAiHelper';
 import { AIHelper } from '../../../helpers/aiHelper';
+import { query } from 'express';
 
 const createApplicationIntoDB = async (data: IApplication) => {
     const application = await Application.create(data);
@@ -248,6 +249,33 @@ const getAutoApplyResults = async (id:string) => {
     return data;
 }
 
+const getRecentApplications = async(query:Record<string,any>) => {
+  const data = new QueryBuilder(Application.find({},{user:1,jobMatch:1,year_of_experience:1}),query).sort().paginate()
+  const [applications,pagination] = await Promise.all([
+    data.modelQuery.populate('user','name email image bio designation').exec(),
+    data.getPaginationInfo()
+  ])
+
+  return {
+    data:applications,
+    pagination
+  }
+}
+
+
+const getUserApplications = async (user:JwtPayload,query:Record<string,any>) => {
+  const {id} = user;
+  const applicationQuery= new QueryBuilder(Application.find({user:id}),query).paginate().sort().filter()
+  const [applications,pagination] = await Promise.all([
+      applicationQuery.modelQuery.populate('post','thumbnail address title recruiter').exec(),
+      applicationQuery.getPaginationInfo()
+  ])
+  return {
+      data:applications,
+      pagination
+  }
+}
+
 
 export const ApplicationServices = {
     createApplicationIntoDB,
@@ -256,5 +284,7 @@ export const ApplicationServices = {
     deleteApplicationFromDB,
     feedBackOfInterview,
     autoApplyForJobPosts,
-    getAutoApplyResults
+    getAutoApplyResults,
+    getRecentApplications,
+    getUserApplications
 };

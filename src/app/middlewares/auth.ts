@@ -23,7 +23,7 @@ const auth =
           config.jwt.jwt_secret as Secret
         );
         //set user to header
-        req.user = verifyUser;
+        (req.user as any) = verifyUser;
 
         //guard user
         if (roles.length && !roles.includes(verifyUser.role)) {

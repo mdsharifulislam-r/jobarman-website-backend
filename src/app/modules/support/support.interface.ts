@@ -7,7 +7,8 @@ export type ISupport = {
   images: string[];
   docs: string[];
   supportId: string;
-  status : 'pending' | 'closed'
+  status : 'pending' | 'resolved',
+  reply?: string
 };
 
 export type SupportModel = Model<ISupport>;

@@ -37,7 +37,7 @@ sendResponse(res, response);
 });
 
 const getSubscription = catchAsync(async (req: Request, res: Response) => {
-  const subscription = await SubscriptionService.getSubscriptionByUser(req.user);
+  const subscription = await SubscriptionService.getSubscriptionByUser((req.user as any));
   const response = {
     success: true,
     message: "Subscription created successfully",
@@ -73,12 +73,38 @@ const getTransactions = catchAsync(async (req: Request, res: Response) => {
   if(!req.body?.password){
     throw new ApiError(StatusCodes.BAD_REQUEST, "Password is required!");
   }
-  const subscription = await SubscriptionService.transactionOfSubscription(req.user, req.body.password, req.query);
+  const subscription = await SubscriptionService.transactionOfSubscription((req.user as any), req.body.password, req.query);
   const response = {
     success: true,
     message: "Subscription created successfully",
     data: subscription.data,
     pagination: subscription.pagination,
+    statusCode: 200,
+  };
+sendResponse(res, response);
+});
+
+
+const getSubscribersUsers = catchAsync(async (req: Request, res: Response) => {
+  const subscription = await SubscriptionService.subscriptionUsers(req.query);
+  const response = {
+    success: true,
+    message: "Subscription created successfully",
+    data: subscription.data,
+    pagination: subscription.pagination,
+    statusCode: 200,
+  };
+sendResponse(res, response);
+});
+
+
+const getSubscriptionDetailsById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const subscription = await SubscriptionService.getSubscriptionDetailsById(id);
+  const response = {
+    success: true,
+    message: "Subscription created successfully",
+    data: subscription,
     statusCode: 200,
   };
 sendResponse(res, response);
@@ -90,5 +116,7 @@ export const SubscriptionController = {
   getSubscription,
   getSubscribers,
   stripeSubscription,
-  getTransactions
+  getTransactions,
+  getSubscriptionDetailsById,
+  getSubscribersUsers
 };

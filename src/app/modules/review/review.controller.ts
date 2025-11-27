@@ -6,7 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 
 const createReview = catchAsync(async (req: Request, res: Response) => {
     const { ...reviewData } = req.body;
-    reviewData.user = req.user.id;
+    reviewData.user = (req.user as any).id;
     const result = await ReviewServices.createReviewInDB(reviewData);
 
     sendResponse(res, {

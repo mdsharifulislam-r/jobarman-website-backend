@@ -13,7 +13,7 @@ const createApplication = catchAsync(async (req: Request, res: Response) => {
     const { ...applicationData } = req.body;
     const resume = getSingleFilePath(req.files, 'resume');
     const other_documents = getMultipleFilesPath(req.files, 'doc');
-    applicationData.user = req.user.id;
+    applicationData.user = (req.user as any).id;
     const post = await Post.findById(applicationData.post);
     if (!post) {
         throw new ApiError(404, 'Post not found');
@@ -37,7 +37,7 @@ const createApplication = catchAsync(async (req: Request, res: Response) => {
 
 
 const getApplications = catchAsync(async (req: Request, res: Response) => {
-    const result = await ApplicationServices.getAllApplications(req.query, req.user);
+    const result = await ApplicationServices.getAllApplications(req.query, (req.user as any));
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -98,7 +98,7 @@ const updateStatusOfApplications = catchAsync(async (req: Request, res: Response
 
 const deleteApplication = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-   await ApplicationServices.deleteApplicationFromDB(id as any,req.user);
+   await ApplicationServices.deleteApplicationFromDB(id as any,(req.user as any));
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -125,12 +125,12 @@ const autoApplyFeaturesForUser = catchAsync(async (req: Request, res: Response) 
     const {percentage,title } = req.body;
     const filePath = getSingleFilePath(req.files, 'resume');
     const autoApply = await AutoApply.create({
-        user: req.user.id,
+        user: (req.user as any).id,
         percentage,
         filePath: filePath!,
         title,
     });
-    await kafkaProducer.sendMessage("application", {type:"autoApply",data:{user:req.user,percentage,filePath,title,_id:autoApply._id}});
+    await kafkaProducer.sendMessage("application", {type:"autoApply",data:{user:(req.user as any),percentage,filePath,title,_id:autoApply._id}});
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -150,6 +150,28 @@ const autoApplyResultsForUser = catchAsync(async (req: Request, res: Response) =
     });
 })
 
+
+const recentApplications = catchAsync(async (req: Request, res: Response) => {
+    const result = await ApplicationServices.getRecentApplications(req.query);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Recent applications fetched successfully',
+        data: result.data,
+        pagination: result.pagination
+    });
+})
+
+const getApplicationsByUser = catchAsync(async (req: Request, res: Response) => {
+    const result = await ApplicationServices.getUserApplications((req.user as any),req.query);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Applications fetched successfully',
+        data: result.data,
+        pagination: result.pagination
+    });
+})
 export const ApplicationController = {
     createApplication,
     getApplications,
@@ -157,6 +179,8 @@ export const ApplicationController = {
     deleteApplication,
     sendFeedBackofInterview,
     autoApplyFeaturesForUser,
-    autoApplyResultsForUser
+    autoApplyResultsForUser,
+    recentApplications,
+    getApplicationsByUser
 
 };

@@ -33,10 +33,10 @@ const allNotificationFromDB = async (
   user: JwtPayload,
   query: Record<string, any>
 ) => {
-  const userObjectId = new Types.ObjectId(user.id);
+
 
   const initialQuery = Notification.find({ receiver:{
-    $in: [userObjectId]
+    $in: [user.id]
   } });
 
   const result = new QueryBuilder(initialQuery, query)
@@ -44,9 +44,11 @@ const allNotificationFromDB = async (
     .paginate();
 
   let unreadCount = await Notification.countDocuments({
-    isRead: false,
+    receiver: {
+      $in: [user.id],
+    },
     readers: {
-      $nin: [userObjectId]
+      $nin: [user.id],
     },
   });
 

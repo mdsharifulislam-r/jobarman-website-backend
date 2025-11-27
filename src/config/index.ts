@@ -30,7 +30,25 @@ export default {
   apple: {
     password: process.env.APPLE_PASSWORD,
   },
-  openAi: {
-    key: process.env.OPENAI_API_KEY,
+  zoom: {
+    account_id: process.env.ZOOM_ACCOUNT_ID,
+    client_id: process.env.ZOOM_CLIENT_ID,
+    client_secret: process.env.ZOOM_CLIENT_SECRET,
   },
+  google: {
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    client_secret: process.env.GOOGLE_CLIENT_SECRET,
+    redirect_url: process.env.GOOGLE_REDIRECT_URL,
+  },
+  linkeden: {
+    client_id: process.env.LINKEDIN_CLIENT_ID,
+    client_secret: process.env.LINKEDIN_CLIENT_SECRET,
+    redirect_url: process.env.LINKEDIN_REDIRECT_URL,
+  },
+  openAi: {
+    key: process.env.LINKEDIN_REDIRECT_URL,
+  },
+  urls:{
+    frontend_url:process.env.FRONTEND_URL
+  }
 };

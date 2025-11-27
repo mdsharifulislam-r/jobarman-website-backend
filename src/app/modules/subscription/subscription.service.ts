@@ -208,11 +208,52 @@ const transactionOfSubscription = async (user: JwtPayload,password: string,query
   return data
 }
 
+
+const subscriptionUsers = async (query:Record<string,any>) => {
+  const SubscriptionQuery = new QueryBuilder(Subscription.find(), query).paginate().sort()
+
+  const [subscriptions,pagination] = await Promise.all([
+    SubscriptionQuery.modelQuery.populate([
+      {
+        path: "user",
+        select: "name email profile"
+      },
+      {
+        path: "package",
+        select: "name price"
+      }
+    ]).exec(),
+    SubscriptionQuery.getPaginationInfo()
+  ])
+
+  return {
+    data:subscriptions,
+    pagination
+  }
+}
+
+const getSubscriptionDetailsById = async (id:string) => {
+  const subscription = await Subscription.findById(id).populate([
+    {
+      path: "user",
+      select: "name email profile"
+    },
+    {
+      path: "package",
+      select: "name price"
+    }
+  ]).lean();
+  return subscription;
+}
+
+
 export const SubscriptionService = {
   verifyAppleReceipt,
   getSubscriptionByUser,
   subscribedUser,
   demoSubscriptionForTest,
   subscribeByStripe,
-  transactionOfSubscription
+  transactionOfSubscription,
+  subscriptionUsers,
+  getSubscriptionDetailsById
 };

@@ -7,6 +7,7 @@ const createMessageZodSchema = z.object({
     text: z.string().optional(),
     image: z.any().optional(),
     doc: z.array(z.any()).optional(),
+    type: z.enum(['text', 'image', 'document','zoom-link']),
   }),
 });
 

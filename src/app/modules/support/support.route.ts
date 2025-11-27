@@ -13,4 +13,5 @@ router.route("/")
     .get(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),SupportController.getAllSupport)
 router.route("/:id")
     .delete(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),SupportController.deleteSupport)
+    .patch(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),fileUploadHandler(),validateRequest(SupportValidations.replySupportZodSchema),SupportController.replySupport)
 export const SupportRoutes = router;

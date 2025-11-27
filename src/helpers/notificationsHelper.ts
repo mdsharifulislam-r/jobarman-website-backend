@@ -27,6 +27,7 @@ export const sendNotificationsAdmin = async (
   const socketIo = global.io;
 
   const users = await User.find({ role: { $in: [USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN] } });
+  data.receiver = users.map((user) => user._id);
   const result = await Notification.create(data);
 
   if (socketIo) {

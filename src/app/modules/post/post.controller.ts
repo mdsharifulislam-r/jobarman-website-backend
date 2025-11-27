@@ -11,8 +11,8 @@ import { getSingleFilePath } from '../../../shared/getFilePath';
 const createPost = catchAsync(async (req: Request, res: Response) => {
     const post:IPost = req.body;
     const image = getSingleFilePath(req.files, 'image');
-    const user = req.user;
-    post.recruiter = user.id;
+    const user = (req.user as any);
+    post.recruiter = user!.id;
     post.thumbnail = image!;
 
     await kafkaProducer.sendMessage("post", {type:"create",data:post});
@@ -52,7 +52,7 @@ const deletePost = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getPostFeed = catchAsync(async (req: Request, res: Response) => {
-    const result = await PostServices.postFeedFromDb(req.query, req.user);
+    const result = await PostServices.postFeedFromDb(req.query, (req.user as any)!);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -64,7 +64,7 @@ const getPostFeed = catchAsync(async (req: Request, res: Response) => {
 
 
 const getPosts = catchAsync(async (req: Request, res: Response) => {
-    const result = await PostServices.getPostsFromDB(req.query, req.user);
+    const result = await PostServices.getPostsFromDB(req.query, (req.user as any)!);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -86,12 +86,51 @@ const getPostInsigts = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+
+const getRecommendedPosts = catchAsync(async (req: Request, res: Response) => {
+    const result = await PostServices.getRecomendedPostsFromDB((req.user as any));
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Recommended posts fetched successfully',
+        data: result.data,
+        pagination: result.pagination
+    });
+})
+
+
+const getRecentsPosts = catchAsync(async (req: Request, res: Response) => {
+    const result = await PostServices.recentPostsFromDB(req.query);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Recent posts fetched successfully',
+        data: result.data,
+        pagination: result.pagination
+    });
+})
+
+
+const getPost = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await PostServices.getSinglePostDetails(id);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Post fetched successfully',
+        data: result,
+    });
+})
+
 export const PostController = {
     createPost,
     updatePost,
     deletePost,
     getPostFeed,
     getPosts,
-    getPostInsigts
+    getPostInsigts,
+    getRecommendedPosts,
+    getRecentsPosts,
+    getPost
 
 };

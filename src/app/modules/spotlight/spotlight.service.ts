@@ -85,6 +85,18 @@ const getSpotlightsFromDB = async (query: Record<string, any>,user:JwtPayload) =
             }
         }
     }
+    if(user.role == USER_ROLES.EMPLOYEE){
+        const spotlightQuery = new QueryBuilder(Spotlight.find({status:'approved'}),query).paginate().sort()
+
+        const [spotlights,pagination] = await Promise.all([
+            spotlightQuery.modelQuery.lean(),
+            spotlightQuery.getPaginationInfo()
+        ])
+        return {
+            pagination,
+            spotlights
+        }
+    }
     
 }
 

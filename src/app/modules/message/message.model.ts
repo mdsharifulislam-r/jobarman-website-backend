@@ -30,7 +30,13 @@ const messageSchema = new Schema<IMessage, MessageModel>(
     docs:[
       {
         type: String,
-    }]
+    }],
+    type:{
+      type:String,
+      enum:['text','image','document','zoom-link'],
+      required:false,
+      default:'text'
+    },
   },
   {
     timestamps: true,

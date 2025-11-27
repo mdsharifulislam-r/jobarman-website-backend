@@ -11,9 +11,14 @@ import { Gallery, ResumeAnalysis, User } from './user.model';
 import { log } from 'winston';
 import { openAiFileUpload } from '../../../helpers/openAiHelper';
 import { AIHelper } from '../../../helpers/aiHelper';
+import { Post } from '../post/post.model';
+import { RedisHelper } from '../../../tools/redis/redis.helper';
+import { query } from 'express';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
   //set role
+  await User.deleteMany({email: payload.email,verified:false});
   const createUser = await User.create(payload);
   if (!createUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create user');
@@ -50,7 +55,7 @@ const getUserProfileFromDB = async (
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
-
+  delete isExistUser.password;
   return isExistUser;
 };
 
@@ -93,6 +98,7 @@ const getGalleryFromDB = async (user: JwtPayload) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
   const gallery = await Gallery.find({ user: id }).sort({ createdAt: -1 });
+  await RedisHelper.keyDelete(`user:${id}`);
   return gallery;
 };
 
@@ -103,6 +109,7 @@ const deleteGalleryFromDB = async (user: JwtPayload, id: string) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
   const gallery = await Gallery.findByIdAndDelete(id);
+  await RedisHelper.keyDelete(`user:${userId}`);
   return gallery;
 };
 
@@ -134,7 +141,7 @@ const updateEducationOfUser = async (user: JwtPayload, payload: IEducation) => {
     }
     return education;
   })
-  console.log(educations);
+
   
   const education = await User.findOneAndUpdate({ _id: id,},{educations},{new : true});
   return education;
@@ -214,6 +221,60 @@ const getResultOfResumeAnalysis = async (id:string) => {
   return result;
 }
 
+const recruiterDetauilsById = async (id:string) => {
+  const cache = await RedisHelper.redisGet(`user:${id}`);
+  if(cache){
+    console.log('cache');
+    
+    return cache;
+  }
+  const user = await User.findById(id).lean();
+  if(!user){
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  const gallery = await Gallery.find({user:id}).lean();
+  const recentJobs = await Post.find({recruiter:id}).sort({createdAt:-1}).limit(5).lean();
+  const data = {
+    user:user,
+    gallery:gallery?.map(g=>g.image) || [],
+    recentJobs: recentJobs
+  }
+  await RedisHelper.redisSet(`user:${id}`,data);
+  return data;
+}
+
+
+const getUsersListFromTheDB = async (query: Record<string, any>) => {
+  const cache = await RedisHelper.redisGet(`users`,query)
+  if(cache){
+      console.log("from cache");
+      return cache
+  }
+  const userQuery = new QueryBuilder(User.find({status: "active"}), query).paginate().sort().search(['name', 'email']).filter()
+  const [users, pagination] = await Promise.all([
+    userQuery.modelQuery.exec(),
+    userQuery.getPaginationInfo()
+  ])
+  const data = {
+    data: users,
+    pagination
+  }
+
+  await RedisHelper.redisSet(`users`,data,query)
+  return data
+}
+
+
+const blockUnBlockUser = async (id:string) => {
+  const user = await User.findById(id);
+  if(!user){
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+  await user.updateOne({status:user.status === "active" ? "delete" : "active"},{new:true});
+  return user;
+}
+
 export const UserService = {
   createUserToDB,
   getUserProfileFromDB,
@@ -228,5 +289,8 @@ export const UserService = {
   updateWorkExperienceOfUser,
   deleteWorkExperienceOfUser,
   anlaizeUserResume,
-  getResultOfResumeAnalysis
+  getResultOfResumeAnalysis,
+  recruiterDetauilsById,
+  getUsersListFromTheDB,
+  blockUnBlockUser
 };

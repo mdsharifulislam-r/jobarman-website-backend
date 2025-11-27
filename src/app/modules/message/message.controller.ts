@@ -7,7 +7,7 @@ import { getMultipleFilesPath, getSingleFilePath } from '../../../shared/getFile
 import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.producer';
 
 const sendMessage = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user.id;
+  const user = (req.user as any).id;
 
 
   let image = getSingleFilePath(req.files, 'image');
@@ -32,7 +32,7 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
 const getMessage = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
   const query = req.query;
-  const user = req.user;
+  const user = (req.user as any);
   const messages = await MessageService.getMessageFromDB(id, query,user);
   sendResponse(res, {
     statusCode: StatusCodes.OK,

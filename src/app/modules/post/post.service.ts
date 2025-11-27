@@ -9,6 +9,7 @@ import { redisClient } from '../../../config/redis';
 import { USER_ROLES } from '../../../enums/user';
 import { Application } from '../application/application.model';
 import { APPLICATION_STATUS } from '../../../enums/application';
+import { User } from '../user/user.model';
 
 const createPostIntoDB = async (post: IPost): Promise<IPost> => {
     const result = await Post.create(post);
@@ -63,9 +64,29 @@ const postFeedFromDb = async (query:Record<string,any>,user:JwtPayload) => {
         initalQuery.createdAt = {$gte:query.startDate}
     }
 
+    if(query.category){
+        const array = query.category.split(',')
+        initalQuery.category = {$in:array}
+    }
+
+    if(query.job_type){
+        const array = query.job_type.split(',')
+        initalQuery.job_type = {$in:array}
+    }
+
+    if(query.job_level){
+        const array = query.job_level.split(',')
+        initalQuery.job_level = {$in:array}
+    }
+
+    if(query.experience_level){
+        const array = query.experience_level.split(',')
+        initalQuery.experience_level = {$in:array}
+    }
 
 
-    const postQuery = new QueryBuilder(Post.find(initalQuery), query).paginate().sort().filter(['minPrice','maxPrice','is_deleted','status']).search(['title','description'])
+
+    const postQuery = new QueryBuilder(Post.find(initalQuery), query).paginate().sort().filter(['minPrice','maxPrice','is_deleted','status','createdAt','category','job_type','job_level','experience_level']).search(['title','description','location'])
     const [posts,pagination] = await Promise.all([
       postQuery.modelQuery.exec(),
       postQuery.getPaginationInfo()
@@ -128,6 +149,82 @@ const getPostInsigtsFromDB = async (postId:string,days:number=30) => {
 }
 
 
+const getRecomendedPostsFromDB = async (user:JwtPayload)=>{
+    const userDetails = await User.findById(user.id);
+    if(!userDetails){
+        throw new ApiError(404,'User not found');
+    }
+
+
+    if(!userDetails.skills || userDetails.skills.length===0){
+        const postQuery = new QueryBuilder(Post.find({is_deleted:false,status:'active',deadline:{$gte:new Date()}}), {}).paginate().sort()
+        const [posts, pagination] = await Promise.all([
+            postQuery.modelQuery.exec(),
+            postQuery.getPaginationInfo()
+        ])
+
+        return {
+            data:posts,
+            pagination
+        }
+    }
+
+    const postQuery = new QueryBuilder(Post.find({is_deleted:false,status:'active',required_skills:{$in:userDetails.skills},deadline:{$gte:new Date()}}), {}).paginate().sort()
+    const [posts, pagination] = await Promise.all([
+        postQuery.modelQuery.exec(),
+        postQuery.getPaginationInfo()
+    ])
+
+    
+    return {
+        data:posts,
+        pagination
+    }
+}
+
+
+const recentPostsFromDB = async (query:Record<string,any>) => {
+    const cache = await RedisHelper.redisGet(`recent_posts`,query)
+    if(cache){
+        console.log("from cache");
+        return cache
+    }
+    const postQuery = new QueryBuilder(Post.find({is_deleted:false,status:'active',deadline:{$gte:new Date()}}), query).paginate().sort().filter(['is_deleted']).search(['title','description'])
+    const [posts,pagination] = await Promise.all([
+      postQuery.modelQuery.exec(),
+      postQuery.getPaginationInfo()
+    ])
+  
+    const data = {
+      data:posts,
+      pagination
+    }
+
+    await RedisHelper.redisSet(`recent_posts`,data,query)
+    return data
+}
+
+
+const getSinglePostDetails = async (id:string) => {
+    const cache = await RedisHelper.redisGet(`post:${id}`);
+    if(cache){
+        console.log("from cache");
+        return cache
+    }
+    const post = await Post.findById(id).populate([
+        {path:'recruiter',select:'name email image'},
+        {path:'category',select:'name'},
+    ]).lean();
+    if(!post){
+        throw new ApiError(404,'Post not found');
+    }
+    await RedisHelper.redisSet(`post:${id}`,post)
+    return {
+        ...post,
+        category:(post.category as any)?.name
+    };
+}
+
 
 export const PostServices = {
     createPostIntoDB,
@@ -135,5 +232,8 @@ export const PostServices = {
     deletePostFromDB,
     postFeedFromDb,
     getPostsFromDB,
-    getPostInsigtsFromDB
+    getPostInsigtsFromDB,
+    getRecomendedPostsFromDB,
+    recentPostsFromDB,
+    getSinglePostDetails
 };

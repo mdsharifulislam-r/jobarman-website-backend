@@ -3,9 +3,15 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import { IMessage } from './message.interface';
 import { Message } from './message.model';
 import { Chat } from '../chat/chat.model';
+import { generateZoomLink } from '../../../helpers/zoomHelper';
 
 const sendMessageToDB = async (payload: Partial<IMessage>): Promise<IMessage> => {
   // save to DB
+
+if(payload.type=="zoom-link"){
+  const link= await generateZoomLink()
+  payload.text=link;
+}
 
   const response = await Message.create(payload);
   const receiver = (await Chat.findById(payload.chatId))?.participants.filter(

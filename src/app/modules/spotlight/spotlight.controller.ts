@@ -8,7 +8,7 @@ const createSpotlight = catchAsync(async (req: Request, res: Response) => {
     const cover_image = getSingleFilePath(req.files, 'image');
     spotlight.contact_info = JSON.parse(spotlight.contact_info);
     spotlight.cover_image = cover_image!;
-    spotlight.user = req.user.id;
+    spotlight.user = (req.user as any).id;
     console.log(spotlight);
     
     await SpotlightServices.createSpotlight(spotlight);
@@ -58,7 +58,7 @@ const approveSpotlight = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getSpotlights = catchAsync(async (req: Request, res: Response) => {
-    const result = await SpotlightServices.getSpotlightsFromDB(req.query, req.user);
+    const result = await SpotlightServices.getSpotlightsFromDB(req.query, (req.user as any));
     res.status(200).json({
         success: true,
         message: 'Spotlights fetched successfully',

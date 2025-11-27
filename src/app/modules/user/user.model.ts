@@ -160,6 +160,13 @@ const userSchema = new Schema<IUser, UserModal>(
     skills: {
       type: [String],
     },
+
+    resume:{
+      type: String
+    },
+    adminaccess:{
+      type:[String]
+    }
     
   },
   { timestamps: true }

@@ -29,6 +29,17 @@ const postSchema = new Schema<IPost, PostModel>({
   location: { type: String, required: true },
   required_skills: { type: [String], required: false },
   deadline: { type: Date, required: true },
+  gioLocation: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      required: false,
+    },
+    coordinates: {
+      type: [Number],
+      required: false,
+    },
+  },
   is_deleted: {
     type: Boolean,
     default: false,
@@ -36,5 +47,8 @@ const postSchema = new Schema<IPost, PostModel>({
 },{
     timestamps: true
 });
+
+postSchema.index({recruiter: 1})
+postSchema.index({gioLocation: '2dsphere'})
 
 export const Post = model<IPost, PostModel>('Post', postSchema);

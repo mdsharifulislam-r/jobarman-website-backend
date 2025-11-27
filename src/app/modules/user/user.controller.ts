@@ -22,7 +22,7 @@ const createUser = catchAsync(
 );
 
 const getUserProfile = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user;
+  const user = (req.user as any);
   const result = await UserService.getUserProfileFromDB(user);
 
   sendResponse(res, {
@@ -36,15 +36,17 @@ const getUserProfile = catchAsync(async (req: Request, res: Response) => {
 //update profile
 const updateProfile = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
+    const user = (req.user as any);
 
     let image = getSingleFilePath(req.files, 'image');
     const cover = getSingleFilePath(req.files, 'cover');
+    const resume = getSingleFilePath(req.files, 'resume');
 
     const data = {
       image,
       ...req.body,
       cover,
+      resume,
     };
 
     if (req.body?.overview) {
@@ -70,7 +72,7 @@ const createGallery = catchAsync(async (req: Request, res: Response) => {
   const image = getSingleFilePath(req.files, 'image');
   galleryData.image = image;
   const result = await UserService.createGalleryIntoDB({
-    user: req.user?.id,
+    user: (req.user as any)?.id,
     ...galleryData,
   });
 
@@ -83,7 +85,7 @@ const createGallery = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getGallery = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserService.getGalleryFromDB(req.user);
+  const result = await UserService.getGalleryFromDB((req.user as any));
 
   sendResponse(res, {
     success: true,
@@ -95,7 +97,7 @@ const getGallery = catchAsync(async (req: Request, res: Response) => {
 
 const deleteGallery = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await UserService.deleteGalleryFromDB(req.user, id);
+  const result = await UserService.deleteGalleryFromDB((req.user as any), id);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -106,7 +108,7 @@ const deleteGallery = catchAsync(async (req: Request, res: Response) => {
 
 const addEducation = catchAsync(async (req: Request, res: Response) => {
   const { ...educationData } = req.body;
-  const result = await UserService.addEducationOfUser(req.user, educationData);
+  const result = await UserService.addEducationOfUser((req.user as any), educationData);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -116,7 +118,7 @@ const addEducation = catchAsync(async (req: Request, res: Response) => {
 });
 const deleteEducation = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await UserService.deleteEducationOfUser(req.user, id);
+  const result = await UserService.deleteEducationOfUser((req.user as any), id);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -128,7 +130,7 @@ const updateEducation = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { ...educationData } = req.body;
   const result = await UserService.updateEducationOfUser(
-    req.user,
+    (req.user as any),
     {
       _id: id,
       ...educationData,
@@ -145,7 +147,7 @@ const updateEducation = catchAsync(async (req: Request, res: Response) => {
 const addworkExperience = catchAsync(async (req: Request, res: Response) => {
   const { ...workExperienceData } = req.body;
   const result = await UserService.addWorkExperienceOfUser(
-    req.user,
+    (req.user as any),
     workExperienceData
   );
   sendResponse(res, {
@@ -157,7 +159,7 @@ const addworkExperience = catchAsync(async (req: Request, res: Response) => {
 });
 const deleteWorkExperience = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await UserService.deleteWorkExperienceOfUser(req.user, id);
+  const result = await UserService.deleteWorkExperienceOfUser((req.user as any), id);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -169,7 +171,7 @@ const updateWorkExperience = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { ...workExperienceData } = req.body;
   const result = await UserService.updateWorkExperienceOfUser(
-    req.user,
+    (req.user as any),
     {
       _id: id,
       ...workExperienceData,
@@ -186,7 +188,7 @@ const updateWorkExperience = catchAsync(async (req: Request, res: Response) => {
 const anlaizeUserResume = catchAsync(async (req: Request, res: Response) => {
   const filePath = getSingleFilePath(req.files, 'resume');
   const resumeAnalysis= await ResumeAnalysis.create({
-    user: req.user.id,
+    user: (req.user as any).id,
     filePath: filePath!,
   });
   await kafkaProducer.sendMessage("resume", {type:"analyze",data:{id:resumeAnalysis._id,fileId:filePath}});
@@ -208,6 +210,42 @@ const getResultOfResumeAnalysis = catchAsync(async (req: Request, res: Response)
     data: result,
   });
 });
+
+const getRecruiterDetailsById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await UserService.recruiterDetauilsById(id);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Recruiter details fetched successfully',
+    data: result,
+  });
+});
+
+
+const getUserList = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.getUsersListFromTheDB(req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User list fetched successfully',
+    data: result.data,
+    pagination: result.pagination,
+  });
+})
+
+
+const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  const result = await UserService.blockUnBlockUser(id);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User status updated successfully',
+    data: result,
+  });
+})
 export const UserController = {
   createUser,
   getUserProfile,
@@ -222,5 +260,9 @@ export const UserController = {
   deleteWorkExperience,
   updateWorkExperience,
   anlaizeUserResume,
-  getResultOfResumeAnalysis
+  getResultOfResumeAnalysis,
+  getRecruiterDetailsById,
+  getUserList,
+  updateUserStatus
+  
 };

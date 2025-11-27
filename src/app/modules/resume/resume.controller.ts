@@ -7,7 +7,7 @@ import { StatusCodes } from 'http-status-codes';
 
 const createResume = catchAsync(async (req: Request, res: Response) => {
     const { ...resumeData } = req.body;
-    resumeData.user = req.user.id
+    resumeData.user = (req.user as any).id
     await kafkaProducer.sendMessage("resume", {type:"create",data:resumeData});
     sendResponse(res, {
         statusCode: StatusCodes.OK,
@@ -41,7 +41,7 @@ const deleteResume = catchAsync(async (req: Request, res: Response) => {
 })
 
 const getAllResumes = catchAsync(async (req: Request, res: Response) => {
-    const result = await ResumeServices.getAllResumeFromDB(req.query, req.user);
+    const result = await ResumeServices.getAllResumeFromDB(req.query, (req.user as any));
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,

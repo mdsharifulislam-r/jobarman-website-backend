@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { ChatService } from "./chat.service";
 
 const createChat = catchAsync(async (req: Request, res: Response) => {
-    const user = req.user;
+    const user = (req.user as any);
     const otherUser = req.params.id;
 
     const participants = [user?.id, otherUser];
@@ -20,7 +20,7 @@ const createChat = catchAsync(async (req: Request, res: Response) => {
 })
 
 const getChat = catchAsync(async (req: Request, res: Response) => {
-    const user = req.user;
+    const user = (req.user as any);
     const search = req.query.searchTerm as string;
     const chatList = await ChatService.getChatFromDB(user, search);
   

@@ -7,6 +7,13 @@ const createSupportZodSchema = z.object({
         doc: z.array(z.any()).optional(),
     }),
 })
+
+const replySupportZodSchema = z.object({
+    body: z.object({
+        reply: z.string({ required_error: 'Reply is required' }),
+    }),
+})
 export const SupportValidations = {
-    createSupportZodSchema
+    createSupportZodSchema,
+    replySupportZodSchema
 };

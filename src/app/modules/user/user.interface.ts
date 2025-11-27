@@ -43,6 +43,8 @@ export type IUser = {
   educations?:IEducation[],
   workExperiences?:IWorkExperience[],
   skills?:string[],
+  resume?:string,
+  adminaccess?:string[]
 };
 
 export type IEducation = {

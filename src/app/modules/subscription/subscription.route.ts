@@ -38,5 +38,16 @@ router.route("/transactions")
   auth(),
   SubscriptionController.getTransactions
 )
+router.route("/details/:id")
+.get(
+  auth(),
+  SubscriptionController.getSubscriptionDetailsById
+)
+
+router.route("/subscribed-users")
+.get(
+  auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+  SubscriptionController.getSubscribersUsers
+)
 
 export const SubscriptionRoutes = router;

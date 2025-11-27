@@ -1,6 +1,8 @@
 import ApiError from "../../../errors/ApiError";
+import { emailHelper } from "../../../helpers/emailHelper";
 import unlinkFile from "../../../shared/unlinkFile";
 import QueryBuilder from "../../builder/QueryBuilder";
+import { IUser } from "../user/user.interface";
 import { ISupport } from "./support.interface";
 import { Support } from "./support.model";
 
@@ -40,8 +42,25 @@ const deleteSupportFromDB = async (id: string) => {
    return await Support.findByIdAndDelete(id);
 };
 
+const replySupport = async (id: string, body: Partial<ISupport>) => { 
+    const exist = await Support.findById(id).populate('user','name email image');
+    if (!exist) {
+        throw new ApiError(404,'Support not found');
+    }
+
+    const user = exist.user as any as IUser
+
+    emailHelper.sendEmail({
+      to: user.email,
+      subject: 'Reply Support',
+      html:body.reply!
+    })
+   return await Support.findOneAndUpdate({ _id: id }, { reply: body.reply ,status:"resolved"}, { new: true });
+};
+
 export const SupportServices = {
   createSupportIntoDB,
   getAllSupport,
-  deleteSupportFromDB
+  deleteSupportFromDB,
+  replySupport
 };

@@ -6,7 +6,8 @@ import validateRequest from '../../middlewares/validateRequest';
 import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
 const router = express.Router();
-
+router.route('/change-status/:id')
+  .put(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),UserController.updateUserStatus)
 router
   .route('/profile')
   .get(auth(), UserController.getUserProfile)
@@ -29,7 +30,11 @@ router
     
     validateRequest(UserValidation.createUserZodSchema),
     UserController.createUser
-  );
+  )
+  .get(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), UserController.getUserList);
+
+
+  
 
 router
   .route('/gallery')
@@ -89,4 +94,12 @@ router
     auth(),
     UserController.getResultOfResumeAnalysis
   )
+router
+  .route('/recruiter/:id')
+  .get(
+    auth(),
+    UserController.getRecruiterDetailsById
+  )
+
+
 export const UserRoutes = router;

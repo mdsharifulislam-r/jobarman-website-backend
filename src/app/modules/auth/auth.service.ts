@@ -16,6 +16,7 @@ import cryptoToken from '../../../util/cryptoToken';
 import generateOTP from '../../../util/generateOTP';
 import { ResetToken } from '../resetToken/resetToken.model';
 import { User } from '../user/user.model';
+import { sendNotificationsAdmin } from '../../../helpers/notificationsHelper';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -27,10 +28,12 @@ const loginUserFromDB = async (payload: ILoginData) => {
 
   //check verified and status
   if (!isExistUser.verified) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'Please verify your account, then try to login again'
-    );
+
+    forgetPasswordToDB(email);
+    return {
+      userVerfied: false,
+      message: 'Please check your email and verify your account',
+    }
   }
 
   //check user status
@@ -159,6 +162,14 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
       { verified: true, authentication: { oneTimeCode: null, expireAt: null } }
     );
     message = 'Email verify successfully';
+    sendNotificationsAdmin({
+      title: 'New user registered',
+      message: `${isExistUser.name} registered`,
+      filePath: 'user',
+      referenceId: isExistUser._id,
+      receiver: [],
+      isRead: false
+    })
   } else {
     await User.findOneAndUpdate(
       { _id: isExistUser._id },

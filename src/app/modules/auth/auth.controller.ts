@@ -56,7 +56,7 @@ const forgetPassword = catchAsync(async (req: Request, res: Response) => {
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
   const token = req.headers.authorization;
   const { ...resetData } = req.body;
-  const result = await AuthService.resetPasswordToDB(token!, resetData);
+  const result = await AuthService.resetPasswordToDB(token! as string, resetData);
 
   sendResponse(res, {
     success: true,
@@ -67,15 +67,21 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 const changePassword = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user;
+  const user = (req.user as any);
   const { ...passwordData } = req.body;
-  await AuthService.changePasswordToDB(user, passwordData);
+  await AuthService.changePasswordToDB(user!, passwordData);
 
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'Your password has been successfully changed',
   });
+});
+
+const googleLogin = catchAsync(async (req: Request, res: Response) => {
+  const user = (req.user as any);
+  console.log((req.session as any).role);
+  
 });
 
 export const AuthController = {

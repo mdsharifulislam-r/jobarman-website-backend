@@ -41,4 +41,6 @@ const subscriptionSchema = new Schema<ISubscription,SubscriptionModel>({
     timestamps:true
 });
 
+subscriptionSchema.index({user: 1})
+
 export const  Subscription = model<ISubscription, SubscriptionModel>('Subscription', subscriptionSchema);

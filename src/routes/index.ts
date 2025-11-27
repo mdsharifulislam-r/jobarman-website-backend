@@ -14,6 +14,10 @@ import { MessageRoutes } from '../app/modules/message/message.routes';
 import { NotificationRoutes } from '../app/modules/notification/notification.routes';
 import { SpotlightRoutes } from '../app/modules/spotlight/spotlight.route';
 import { ReviewRoutes } from '../app/modules/review/review.route';
+import { FavouriteRoutes } from '../app/modules/favourite/favourite.route';
+import { DashboardRoutes } from '../app/modules/dashboard/dashboard.route';
+import { FaqRoutes } from '../app/modules/faq/faq.route';
+import { AdminRoutes } from '../app/modules/admin/admin.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -77,6 +81,22 @@ const apiRoutes = [
   {
     path:"/review",
     route: ReviewRoutes
+  },
+  {
+    path:"/favourite",
+    route: FavouriteRoutes
+  },
+  {
+    path:"/dashboard",
+    route: DashboardRoutes
+  },
+  {
+    path:"/faq",
+    route: FaqRoutes
+  },
+  {
+    path:"/admin",
+    route: AdminRoutes
   }
 
 ];
