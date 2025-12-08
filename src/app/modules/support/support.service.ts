@@ -1,6 +1,7 @@
 import ApiError from "../../../errors/ApiError";
 import { emailHelper } from "../../../helpers/emailHelper";
 import unlinkFile from "../../../shared/unlinkFile";
+import AggregateQueryBuilder from "../../builder/AggrigateQueryBuilder";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { IUser } from "../user/user.interface";
 import { ISupport } from "./support.interface";
@@ -11,10 +12,20 @@ const createSupportIntoDB = async (body: ISupport) => {
 };
 
 const getAllSupport = async (query: Record<string, any>) => { 
-   const supportQuery = new QueryBuilder(Support.find(), query).paginate().sort().filter().search(['reason','description','supportId'])
+   const supportQuery = new AggregateQueryBuilder(Support,query)
+  supportQuery.addCustomStage({ $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user', pipeline:[
+    { $project: { name: 1, email: 1, image: 1 } }
+  ] } });
+  
+  
+  supportQuery.addCustomStage({ $unwind: { path: '$user', preserveNullAndEmptyArrays: true } });
+  supportQuery.search(['user.name','user.email'])
+   supportQuery.filter(['downloadType'])
+   supportQuery.sort()
+   supportQuery.paginate()
 
    const [supports,pagination] = await Promise.all([
-     supportQuery.modelQuery?.populate('user','name email image').exec(),
+     supportQuery.exec(),
      supportQuery.getPaginationInfo()
    ])
 

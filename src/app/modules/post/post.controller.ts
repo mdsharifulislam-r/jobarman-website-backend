@@ -15,6 +15,7 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
     post.recruiter = user!.id;
     post.thumbnail = image!;
 
+
     await kafkaProducer.sendMessage("post", {type:"create",data:post});
     
     

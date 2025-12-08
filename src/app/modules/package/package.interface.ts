@@ -6,7 +6,7 @@ export type IPackage = {
     priceId?: string,
     payment_link?: string,
     product?: string,
-    for:"exployee"|"recruiter",
+    for:"employee"|"recruiter",
     features: string[];
     status: "active" | "delete";
     paymentId: string

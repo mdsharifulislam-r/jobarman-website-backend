@@ -59,7 +59,7 @@ sendResponse(res, response);
 });
 
 const stripeSubscription = catchAsync(async (req: Request, res: Response) => {
-  const subscription = await SubscriptionService.subscribeByStripe(req.body.receipt, {id: req.body.userId});
+  const subscription = await SubscriptionService.subscribeByStripe(req.body.receipt, {id: (req.user as any)!.id as string});
   const response = {
     success: true,
     message: "Subscription created successfully",
@@ -76,9 +76,7 @@ const getTransactions = catchAsync(async (req: Request, res: Response) => {
   const subscription = await SubscriptionService.transactionOfSubscription((req.user as any), req.body.password, req.query);
   const response = {
     success: true,
-    message: "Subscription created successfully",
-    data: subscription.data,
-    pagination: subscription.pagination,
+    message: "Otp sent successfully",
     statusCode: 200,
   };
 sendResponse(res, response);
@@ -110,6 +108,33 @@ const getSubscriptionDetailsById = catchAsync(async (req: Request, res: Response
 sendResponse(res, response);
 });
 
+
+const transactionByOtp = catchAsync(async (req: Request, res: Response) => {
+  if(!req.query?.otp){
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Otp is required!");
+  }
+  const subscription = await SubscriptionService.transactionOfSubscriptionByOtp((req.user as any), req.query);
+  const response = {
+    success: true,
+    message: "Get Data successfully",
+    statusCode: 200,
+    data: subscription.data,
+    pagination: subscription.pagination
+  };
+sendResponse(res, response);
+});
+
+const renewSubscription = catchAsync(async (req: Request, res: Response) => {
+  const subscription = await SubscriptionService.renewSubscription((req.user as any));
+  const response = {
+    success: true,
+    message: "Get Data successfully",
+    statusCode: 200,
+    data: subscription
+  };
+sendResponse(res, response);
+});
+
 export const SubscriptionController = {
   createSubsciption,
   demoSubscription,
@@ -118,5 +143,7 @@ export const SubscriptionController = {
   stripeSubscription,
   getTransactions,
   getSubscriptionDetailsById,
-  getSubscribersUsers
+  getSubscribersUsers,
+  transactionByOtp,
+  renewSubscription
 };

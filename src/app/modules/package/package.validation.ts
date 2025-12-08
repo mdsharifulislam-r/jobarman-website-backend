@@ -3,7 +3,7 @@ export const createPackageZodSchema = z.object({
     body: z.object({
     name: z.string({ required_error: 'Name is required' }),
     price: z.number({ required_error: 'Price is required' }),
-    for: z.enum(['exployee', 'recruiter'], { required_error: 'For is required' }),
+    for: z.enum(['employee', 'recruiter'], { required_error: 'For is required' }),
     features: z.array(z.string()).min(1, { message: 'Features is required' }),
     paymentId: z.string().optional(),
     referenceId: z.string().optional(),
@@ -20,7 +20,7 @@ const updatePackageZodSchema = z.object({
         features: z.array(z.string()).optional(),
         paymentId: z.string().optional(),
         referenceId: z.string().optional(),
-        recurring: z.enum(['monthly', 'yearly']).optional(),
+        recurring: z.enum(['month', 'year']).optional(),
     }),
 })
 

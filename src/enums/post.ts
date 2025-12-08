@@ -19,3 +19,11 @@ export enum EXPERIENCE_LEVEL{
     FIVE_TEN_YRS = '5-10yrs',
     TEN_YRS = '10+yrs'
 }
+
+export enum DateFilter {
+  ALL = "All",
+  LAST_HOUR = "Last Hour",
+  LAST_24_HOURS = "Last 24 Hours",
+  LAST_7_DAYS = "Last 7 Days",
+  LAST_30_DAYS = "Last 30 Days",
+}

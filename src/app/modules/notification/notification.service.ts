@@ -20,9 +20,9 @@ const markAllNotificationsAsRead = async (user: JwtPayload) => {
 const userObjectId = new Types.ObjectId(user.id)
   const result = await Notification.updateMany(
     { isRead: false, receiver: {
-      $in: [userObjectId]
+      $in: [user.id]
     } },
-    { $set: { isRead: true,$push: { readers: userObjectId } } },
+    { $set: { $push: { readers: user.id } } },
   );
   return result;
 };
@@ -34,10 +34,16 @@ const allNotificationFromDB = async (
   query: Record<string, any>
 ) => {
 
+if(query.date){
+  query.date = new Date(query.date)
+
+}
+
+
 
   const initialQuery = Notification.find({ receiver:{
-    $in: [user.id]
-  } });
+    $in: [user.id],
+  },...(query.date && { createdAt: { $gte: query.date } }) });
 
   const result = new QueryBuilder(initialQuery, query)
     .sort()

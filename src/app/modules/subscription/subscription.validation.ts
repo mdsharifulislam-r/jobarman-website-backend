@@ -5,9 +5,6 @@ const createSubsciptionZodSchema = z.object({
     receipt: z.string({
       required_error: 'Receipt is required',
     }),
-    userId: z.string({
-      required_error: 'User id is required',
-    }),
   }),
 });
 

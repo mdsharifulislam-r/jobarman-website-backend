@@ -11,7 +11,7 @@ router.post('/',auth(USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN),validateRequest(Fa
 
 router.get('/',FaqController.getAllFaqs)
 
-router.put('/:id',auth(USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN),validateRequest(FaqValidation.updateFaqZodSchema),FaqController.updateFaq)
+router.patch('/:id',auth(USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN),validateRequest(FaqValidation.updateFaqZodSchema),FaqController.updateFaq)
 
 router.delete('/:id',auth(USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN),FaqController.deleteFaq)
 

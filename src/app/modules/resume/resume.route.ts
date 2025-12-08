@@ -13,6 +13,7 @@ router.route("/")
 router.route("/:id")
     .patch(auth(),validateRequest(ResumeValidations.ResumeSchema.partial()),ResumeController.updateResume)
     .delete(auth(),ResumeController.deleteResume)
+    .get(auth(),ResumeController.getResume)
 
 
 export const ResumeRoutes = router;

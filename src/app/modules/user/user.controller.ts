@@ -6,6 +6,12 @@ import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
 import { ResumeAnalysis } from './user.model';
 import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.producer';
+import { exportJobsToCSV, exportOrganizationsToCSV, exportSubscriptionsToCSV, exportSupportToCSV, exportUsersToCSV, generateJobTablePDF, generateOrganizationTablePDF, generateSubscriptionPDF, generateSupportTablePDF, generateUserTablePDF } from '../../../helpers/printAndCsvHelper';
+import { SubscriptionService } from '../subscription/subscription.service';
+import ApiError from '../../../errors/ApiError';
+import { SpotlightServices } from '../spotlight/spotlight.service';
+import { PostServices } from '../post/post.service';
+import { SupportServices } from '../support/support.service';
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -55,6 +61,16 @@ const updateProfile = catchAsync(
 
     if (req.body?.contactInfo) {
       data.contactInfo = JSON.parse(req.body.contactInfo);
+    }
+
+    if(req.body?.workExperiences){
+      console.log(req.body.workExperiences);
+      
+      data.workExperiences = JSON.parse(req.body.workExperiences);
+    }
+
+    if(req.body?.educations){
+      data.educations = JSON.parse(req.body.educations);
     }
     const result = await UserService.updateProfileToDB(user, data);
 
@@ -246,6 +262,105 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 })
+
+const userListDownLoad = catchAsync(async (req: Request, res: Response) => {
+
+  try {
+    if(req.query.downloadItem === 'user'){
+      delete req.query.downloadItem
+      const result = await UserService.getUsersListFromTheDB(req.query);
+      if(req.query.downloadType === 'csv'){
+        exportUsersToCSV(result.data, res);
+      }else if(req.query.downloadType === 'pdf'){
+        generateUserTablePDF(result.data, res);
+      }
+    }
+    else if(req.query.downloadItem === 'sub'){
+      delete req.query.downloadItem
+      const subscriptionList = await SubscriptionService.subscribedUser(req.query);
+      if(req.query.downloadType === 'csv'){
+        exportSubscriptionsToCSV(subscriptionList.data as any, res);
+      }else if(req.query.downloadType === 'pdf'){
+        generateSubscriptionPDF(subscriptionList.data as any, res);
+      }
+    }
+    else if(req.query.downloadItem === 'ad'){
+      delete req.query.downloadItem
+      const result = await SpotlightServices.getSpotlightsFromDB(req.query, (req.user as any));
+      if(req.query.downloadType === 'pdf'){
+        generateOrganizationTablePDF(result?.spotlights as any, res);
+      }else if(req.query.downloadType === 'csv'){
+        exportOrganizationsToCSV(result?.spotlights as any, res);
+      }
+    }
+    else if(req.query.downloadItem === 'job'){
+      delete req.query.downloadItem
+      const result = await PostServices.getPostsFromDB(req.query, (req.user as any));
+      console.log(result);
+      
+      if(req.query.downloadType === 'csv'){
+        exportJobsToCSV(result?.data as any, res);
+      }else if(req.query.downloadType === 'pdf'){
+        generateJobTablePDF(result?.data as any, res);
+      }
+    }
+    else if(req.query.downloadItem === 'support'){
+      delete req.query.downloadItem
+      const result = await SupportServices.getAllSupport(req.query);
+      if(req.query.downloadType === 'csv'){
+        exportSupportToCSV(result?.data as any, res);
+      }else if(req.query.downloadType === 'pdf'){
+        generateSupportTablePDF(result?.data as any, res);
+      }
+    }
+    else {
+      sendResponse(res, {
+        success: false,
+        statusCode: StatusCodes.BAD_REQUEST,
+        message: 'Invalid download item',
+        data: null
+      })
+    }
+  } catch (error) {
+    console.log(error);
+    
+    sendResponse(res, {
+      success: false,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      message: 'something went wrong',
+      data: error
+    })
+  }
+})
+
+const toggleAutoApply = catchAsync(async (req: Request, res: Response) => {
+
+  const result = await UserService.toggleAutoApply(req.user as any);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Auto apply updated successfully',
+    data: result,
+  });
+})
+
+
+const deleteAccount = catchAsync(async (req: Request, res: Response) => {
+  const password = req.body.password;
+  
+  if(!password){
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Password is required');
+  }
+  const user = req.user as any;
+  const result = await UserService.deleteAccountFromDB(user,password);
+  
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Account deleted successfully',
+    data: result,
+  });
+})
 export const UserController = {
   createUser,
   getUserProfile,
@@ -263,6 +378,9 @@ export const UserController = {
   getResultOfResumeAnalysis,
   getRecruiterDetailsById,
   getUserList,
-  updateUserStatus
+  updateUserStatus,
+  userListDownLoad,
+  toggleAutoApply,
+  deleteAccount
   
 };

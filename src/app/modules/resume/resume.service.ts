@@ -3,7 +3,10 @@ import { IResume, ResumeModel } from './resume.interface';
 import { Resume } from './resume.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 const crateResumeIntoDB = async (data: IResume): Promise<IResume> => {
+  console.log(data.workExperiences);
+  
     const result = await Resume.create(data);
+    
     return result;
 }
 
@@ -32,9 +35,15 @@ const deleteResumeFromDB = async (id: string) => {
     const result = await Resume.findOneAndDelete({ _id: id });
     return result;
 }
+
+const getResumeByIdFromDB = async (id: string) => {
+    const result = await Resume.findById(id);
+    return result;
+}
 export const ResumeServices = {
     crateResumeIntoDB,
     getAllResumeFromDB,
     updateResumeToDB,
-    deleteResumeFromDB
+    deleteResumeFromDB,
+    getResumeByIdFromDB
 };

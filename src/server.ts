@@ -7,6 +7,7 @@ import { seedSuperAdmin } from './DB/seedAdmin';
 import { socketHelper } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
 import { loadConsumer } from './tools/kafka/kafka-consumers';
+import { startWorker } from './worker/worker';
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -22,6 +23,7 @@ async function main() {
 
     //Seed Super Admin after database connection is successful
     await seedSuperAdmin();
+    startWorker()
     // await loadConsumer() if you using kafka
   loadConsumer();
     const port =

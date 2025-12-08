@@ -46,9 +46,12 @@ export default {
     redirect_url: process.env.LINKEDIN_REDIRECT_URL,
   },
   openAi: {
-    key: process.env.LINKEDIN_REDIRECT_URL,
+    key: process.env.OPENAI_API_KEY,
   },
   urls:{
     frontend_url:process.env.FRONTEND_URL
-  }
+  },
+  locationQ: {
+    key: process.env.LOCATIONIQ_API_KEY,
+  },
 };

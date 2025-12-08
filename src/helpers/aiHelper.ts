@@ -108,6 +108,7 @@ posts: ${encode(posts)}
 
 Compare the user’s skills, education, and work experience with each post’s required skills, education, and work experience. Determine which posts the user matches with at least the given percentage or higher. Return only the list of matched posts.
 and calculate how well the user matches each post and give the match percentage in jobMatch field.
+dont generate any demo data.
 The response must strictly follow this format :
 ${JSON.stringify({
   matchedPosts: [

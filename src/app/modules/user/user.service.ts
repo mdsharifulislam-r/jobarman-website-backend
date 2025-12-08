@@ -251,7 +251,7 @@ const getUsersListFromTheDB = async (query: Record<string, any>) => {
       console.log("from cache");
       return cache
   }
-  const userQuery = new QueryBuilder(User.find({status: "active"}), query).paginate().sort().search(['name', 'email']).filter()
+  const userQuery = new QueryBuilder(User.find({status: "active",role:{$nin:[USER_ROLES.SUPER_ADMIN,USER_ROLES.ADMIN]}}), query).paginate().sort().search(['name', 'email']).filter(['downloadType'])
   const [users, pagination] = await Promise.all([
     userQuery.modelQuery.exec(),
     userQuery.getPaginationInfo()
@@ -275,6 +275,41 @@ const blockUnBlockUser = async (id:string) => {
   return user;
 }
 
+
+const toggleAutoApply = async (jwtUser:JwtPayload) => {
+  const user = await User.findById(jwtUser.id);
+  if(!user){
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+  await user.updateOne({isAutoApply:!user.isAutoApply},{new:true});
+  return {
+    isAutoApply:user.isAutoApply
+  };
+}
+
+const deleteAccountFromDB =async (user:JwtPayload,password:string)=>{
+
+  
+  const isExistUser =await User.findById(user.id).select('+password');
+  if(!isExistUser){
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  if(isExistUser.status !== "active"){
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User is not active!");
+  }
+
+  const match = await User.isMatchPassword(password,isExistUser.password);
+
+  if(!match){
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Password doesn't match!");
+  }
+  await User.findByIdAndUpdate(user.id,{status:"delete"});
+  return isExistUser
+  
+}
+
+
 export const UserService = {
   createUserToDB,
   getUserProfileFromDB,
@@ -292,5 +327,7 @@ export const UserService = {
   getResultOfResumeAnalysis,
   recruiterDetauilsById,
   getUsersListFromTheDB,
-  blockUnBlockUser
+  blockUnBlockUser,
+  toggleAutoApply,
+  deleteAccountFromDB
 };

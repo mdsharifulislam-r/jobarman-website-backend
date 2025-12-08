@@ -68,7 +68,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
     config.jwt.jwt_secret as Secret,
     "25d"
   )
-  return { createToken, refreshToken,role:isExistUser.role };
+  return { createToken, refreshToken,role:isExistUser.role,userId:isExistUser._id };
 };
 const socialSignInToDB = async (email: string) => {
   
@@ -98,7 +98,7 @@ const socialSignInToDB = async (email: string) => {
     "25d"
   );
 
-  return { createToken, refreshToken,role:isExistUser.role };
+  return { createToken, refreshToken,role:isExistUser.role,userId:isExistUser._id };
 }
 
 

@@ -23,8 +23,15 @@ router.route("/demo")
 
 router.route("/stripe")
 .post(
+  auth(),
   validateRequest(SubscriptionValidation.createSubsciptionZodSchema),
   SubscriptionController.stripeSubscription
+)
+
+router.route("/stripe/renew")
+.post(
+  auth(),
+  SubscriptionController.renewSubscription
 )
 
 router.route("/subscribers")
@@ -38,6 +45,7 @@ router.route("/transactions")
   auth(),
   SubscriptionController.getTransactions
 )
+router.get("/transactions-by-otp",auth(), SubscriptionController.transactionByOtp)
 router.route("/details/:id")
 .get(
   auth(),

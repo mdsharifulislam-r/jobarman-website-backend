@@ -51,9 +51,22 @@ const getAllResumes = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+
+const getResume = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await ResumeServices.getResumeByIdFromDB(id);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Resume fetched successfully',
+        data: result
+    });
+})
+
 export const ResumeController = {
     createResume,
     updateResume,
     deleteResume,
-    getAllResumes
+    getAllResumes,
+    getResume
 };

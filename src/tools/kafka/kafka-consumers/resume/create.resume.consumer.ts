@@ -9,6 +9,8 @@ export const ResumeConsumer = async () => {
       groupId: 'resume',
       topic: 'resume',
       cb: async (data: { type: string; data: any }) => {
+
+        
         try {
           switch (data.type) {
             case 'create':

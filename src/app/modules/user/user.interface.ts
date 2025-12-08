@@ -44,13 +44,16 @@ export type IUser = {
   workExperiences?:IWorkExperience[],
   skills?:string[],
   resume?:string,
-  adminaccess?:string[]
+  adminaccess?:string[],
+  isAutoApply:boolean,
+  company_overview?:string,
 };
 
 export type IEducation = {
   degree: string;
   institute: string;
   startDate: Date;
+  session: string;
   endDate: Date;
   passingYear: number;
   grade: string;

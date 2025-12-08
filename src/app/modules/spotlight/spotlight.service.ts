@@ -56,7 +56,7 @@ const approveSpotlight = async (id: string, status: 'approved' | 'rejected') => 
 
 const getSpotlightsFromDB = async (query: Record<string, any>,user:JwtPayload) => {
     if([USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN].includes(user.role)){
-        const spotlightQuery = new QueryBuilder(Spotlight.find(),query).paginate().sort().filter()
+        const spotlightQuery = new QueryBuilder(Spotlight.find(),query).paginate().sort().filter(['downloadType'])
 
         const [spotlights,pagination] = await Promise.all([
             spotlightQuery.modelQuery.lean(),

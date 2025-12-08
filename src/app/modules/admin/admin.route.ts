@@ -26,6 +26,12 @@ router.delete(
     AdminController.deleteAdmin
 );
 
+router.patch(
+    '/:id',
+    auth(USER_ROLES.SUPER_ADMIN),
+    AdminController.updateAdminInfo
+);
+
 
 
 export const AdminRoutes = router;

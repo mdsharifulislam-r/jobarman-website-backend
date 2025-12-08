@@ -33,7 +33,9 @@ router
   )
   .get(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), UserController.getUserList);
 
-
+router
+  .route('/download-user-list')
+  .get(auth(),UserController.userListDownLoad);
   
 
 router
@@ -100,6 +102,14 @@ router
     auth(),
     UserController.getRecruiterDetailsById
   )
+
+  router.route('/auto-apply')
+  .post(
+    auth(USER_ROLES.EMPLOYEE),
+    UserController.toggleAutoApply
+  )
+
+  router.delete('/delete-account',auth(),UserController.deleteAccount)
 
 
 export const UserRoutes = router;

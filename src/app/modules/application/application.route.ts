@@ -26,5 +26,6 @@ router.get("/recent-applications",ApplicationController.recentApplications)
 router.route("/:id")
     .patch(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(ApplicationValidations.changeStatusSchema),ApplicationController.updateStatusOfApplications)
     .delete(auth(USER_ROLES.RECRUITER, USER_ROLES.EMPLOYEE),ApplicationController.deleteApplication)
+    .get(auth(USER_ROLES.RECRUITER, USER_ROLES.EMPLOYEE),ApplicationController.getApplication)
 
 export const ApplicationRoutes = router;

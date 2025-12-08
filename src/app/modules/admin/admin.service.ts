@@ -39,8 +39,17 @@ const getAdminFromDB = async (query:Record<string,any>)=> {
     }
 };
 
+const updateAdminInfo = async (id: any, payload: any) => {
+    const isExistAdmin = await User.findOneAndUpdate({ _id: id, role: 'ADMIN' }, payload, { new: true });
+    if (!isExistAdmin) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update Admin');
+    }
+    return isExistAdmin;
+}
+
 export const AdminService = {
     createAdminToDB,
     deleteAdminFromDB,
-    getAdminFromDB
+    getAdminFromDB,
+    updateAdminInfo
 };

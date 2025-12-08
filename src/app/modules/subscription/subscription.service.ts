@@ -10,6 +10,8 @@ import { StatusCodes } from "http-status-codes";
 import QueryBuilder from "../../builder/QueryBuilder";
 import stripe from "../../../config/stripe";
 import { RedisHelper } from "../../../tools/redis/redis.helper";
+import generateOTP from "../../../util/generateOTP";
+import { emailHelper } from "../../../helpers/emailHelper";
 
 export interface AppleReceiptResponse {
   status: number;
@@ -159,11 +161,16 @@ const demoSubscriptionForTest = async (packageId:string,user:JwtPayload)=>{
 
 
 const getSubscriptionByUser = async (user: JwtPayload) => {
-  const subscription = await Subscription.findOne({ user: user.id,status:"active" });
+  const subscription = await Subscription.findOne({ user: user.id,status:"active" }).populate('user','name email image address designation').lean()
   if (!subscription) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Subscription doesn't exist!");
   }
-  return subscription;
+  const remaningDays = Math.floor((subscription.endDate.getTime() - new Date().getTime()) / 1000 / 60 / 60 / 24);
+  return {
+
+    ...subscription,
+    remainingDays: remaningDays
+  };
 };
 
 const subscribedUser = async (query:Record<string,any>) => {
@@ -192,20 +199,20 @@ const transactionOfSubscription = async (user: JwtPayload,password: string,query
     throw new ApiError(StatusCodes.BAD_REQUEST, "Password is incorrect!");
   }
 
-  const SubscriptionQuery = new QueryBuilder(Subscription.find({user:user.id}), query).paginate().sort()
+  const otp = generateOTP();
+  const authentication = {
+    oneTimeCode: otp,
+    expireAt: new Date(Date.now() + 3 * 60000),
+  };
+  await User.findOneAndUpdate({ _id: userExist._id }, { $set: { authentication } });
 
-  const [subscriptions,pagination] = await Promise.all([
-    SubscriptionQuery.modelQuery.exec(),
-    SubscriptionQuery.getPaginationInfo()
-  ])
+  emailHelper.sendEmail({
+    to: userExist.email,
+    subject: "Transaction of Subscription",
+    html:`Hello ${userExist.name} your transaction otp is ${otp}`,
+  })
 
-  const data  = {
-    data:subscriptions,
-    pagination
-  }
-
-
-  return data
+  return true
 }
 
 
@@ -236,7 +243,7 @@ const getSubscriptionDetailsById = async (id:string) => {
   const subscription = await Subscription.findById(id).populate([
     {
       path: "user",
-      select: "name email profile"
+      select: "name email profile  address location"
     },
     {
       path: "package",
@@ -246,6 +253,59 @@ const getSubscriptionDetailsById = async (id:string) => {
   return subscription;
 }
 
+const transactionOfSubscriptionByOtp = async (user: JwtPayload, query:Record<string,any>) => {
+
+  
+  const userExist = await User.findById(user.id).select('+authentication');
+  if (!userExist) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+
+  
+
+  if (userExist?.authentication?.oneTimeCode !== Number(query.otp)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "You provided wrong otp!");
+  }
+
+  const date = new Date();
+  if (date > userExist?.authentication?.expireAt) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Otp already expired!");
+  }
+
+  await User.findOneAndUpdate({ _id: userExist._id }, { $unset: { authentication: 1 } });
+    const SubscriptionQuery = new QueryBuilder(Subscription.find({user:user.id}), query).paginate().sort()
+
+  const [subscriptions,pagination] = await Promise.all([
+    SubscriptionQuery.modelQuery.exec(),
+    SubscriptionQuery.getPaginationInfo()
+  ])
+
+  const data  = {
+    data:subscriptions,
+    pagination
+  }
+
+
+  return data
+
+}
+
+
+const renewSubscription = async (user: JwtPayload) => {
+  const subscription = await Subscription.findOne({ user: user.id,status:"active" }).lean()
+  if (!subscription) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "You have no active subscription! Please subscribe first.");
+  }
+
+  const plan = await Package.findById(subscription.package).lean()
+  if (!plan) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Package doesn't exist! Please choose another plan.");
+  }
+
+  return subscribeByStripe(plan._id.toString(), user);
+
+};
 
 export const SubscriptionService = {
   verifyAppleReceipt,
@@ -255,5 +315,7 @@ export const SubscriptionService = {
   subscribeByStripe,
   transactionOfSubscription,
   subscriptionUsers,
-  getSubscriptionDetailsById
+  getSubscriptionDetailsById,
+  transactionOfSubscriptionByOtp,
+  renewSubscription
 };

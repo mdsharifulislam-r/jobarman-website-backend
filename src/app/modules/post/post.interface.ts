@@ -21,6 +21,8 @@ export type IPost = {
     type: "Point",
     coordinates: [number, number]
   }
+  responsibilities?: string[];
+  benefits?: string[];
   
 };
 

@@ -24,9 +24,9 @@ class AggregateQueryBuilder<T> {
   }
 
 
-  filter() {
+  filter(exceeded:string[]=[]) {
     const queryObj = { ...this.query };
-    const excludeFields = ['searchTerm', 'sort', 'page', 'limit', 'fields'];
+    const excludeFields = ['searchTerm', 'sort', 'page', 'limit', 'fields', ...exceeded];
     excludeFields.forEach(f => delete queryObj[f]);
 
     Object.keys(queryObj).forEach(key => {
@@ -96,6 +96,11 @@ class AggregateQueryBuilder<T> {
 
   async exec() {
     return await this.model.aggregate(this.pipeline);
+  }
+
+  addCustomStage(stage: PipelineStage) {
+    this.pipeline.push(stage);
+    return this;
   }
 
 

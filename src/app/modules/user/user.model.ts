@@ -10,6 +10,7 @@ const educationSchema = new Schema<IEducation>({
   degree:String,
   institute:String,
   startDate:Date,
+  session:String,
   endDate:Date,
   passingYear:Number,
   grade:String,
@@ -166,7 +167,15 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     adminaccess:{
       type:[String]
-    }
+    },
+    isAutoApply: {
+      type: Boolean,
+      default: false,
+    },
+    company_overview:{
+      type: String
+    },
+    
     
   },
   { timestamps: true }

@@ -1,5 +1,6 @@
 import ApiError from '../../../errors/ApiError';
 import unlinkFile from '../../../shared/unlinkFile';
+import { Post } from '../post/post.model';
 import { CategoryModel, ICategory } from './category.interface';
 import { Category } from './category.model';
 const createCategoryInDB = async (category: ICategory): Promise<ICategory> => {
@@ -9,7 +10,10 @@ const createCategoryInDB = async (category: ICategory): Promise<ICategory> => {
 
 const getAllCategoryFromDB = async (): Promise<ICategory[]> => {
     const getAllCategory = await Category.find({status:'active'});
-    return getAllCategory;
+    return await Promise.all(getAllCategory.map(async (category) => {
+        const jobs = await Post.countDocuments({ category: category._id,status:'active' });
+        return { ...category.toJSON(), jobs };
+    }));
 }
 
 const updateCategoryInDB = async (id: string, payload: ICategory): Promise<ICategory | null> => {

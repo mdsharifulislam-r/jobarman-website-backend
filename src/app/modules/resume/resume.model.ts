@@ -13,7 +13,7 @@ const resumeSchema = new Schema<IResume, ResumeModel>({
     work_authorization: { type: String, required: false },
     clearance: { type: String, required: false },
     open_to_work: { type: String, required: false },
-    summery: { type: String, required: false },
+    summury: { type: String, required: false },
     address: { type: String, required: false },
     date_of_birth: { type: Date, required: false },
     age: { type: Number, required: false },
@@ -31,7 +31,7 @@ const resumeSchema = new Schema<IResume, ResumeModel>({
       passingYear: { type: Number, required: false },
     }]
   },
-  workExperiences: {
+  workExperiences: [{
     title: { type: String, required: false },
     company: { type: String, required: false },
     startDate: { type: Date, required: false },
@@ -40,7 +40,7 @@ const resumeSchema = new Schema<IResume, ResumeModel>({
     location: { type: String, required: false },
     isCurrentJob: { type: Boolean, required: false },
     designation: { type: String, required: false },
-  },
+  }],
   skills: {
     type:[String]
   },

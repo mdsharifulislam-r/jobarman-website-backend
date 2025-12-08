@@ -21,7 +21,7 @@ const packageSchema = new mongoose.Schema<IPackage,PackageModel>({
     },
     for: {
         type: String,
-        enum: ['exployee', 'recruiter'],
+        enum: ['employee', 'recruiter'],
     },
     features: {
         type: [String],

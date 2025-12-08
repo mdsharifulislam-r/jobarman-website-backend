@@ -172,6 +172,18 @@ const getApplicationsByUser = catchAsync(async (req: Request, res: Response) => 
         pagination: result.pagination
     });
 })
+
+
+const getApplication = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await ApplicationServices.singleApplicationDetails(id);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Application fetched successfully',
+        data: result
+    });
+})
 export const ApplicationController = {
     createApplication,
     getApplications,
@@ -181,6 +193,7 @@ export const ApplicationController = {
     autoApplyFeaturesForUser,
     autoApplyResultsForUser,
     recentApplications,
-    getApplicationsByUser
+    getApplicationsByUser,
+    getApplication
 
 };
