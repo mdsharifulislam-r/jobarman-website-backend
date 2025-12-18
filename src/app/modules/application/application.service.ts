@@ -14,7 +14,13 @@ import { User } from '../user/user.model';
 import { Post } from '../post/post.model';
 import { openAiFileUpload } from '../../../helpers/openAiHelper';
 import { AIHelper } from '../../../helpers/aiHelper';
-import { query } from 'express';
+import { application, query } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import { generateZoomLink } from '../../../helpers/zoomHelper';
+import { Chat } from '../chat/chat.model';
+import { ChatService } from '../chat/chat.service';
+import { emailHelper } from '../../../helpers/emailHelper';
+import { sendNotifications } from '../../../helpers/notificationsHelper';
 
 const createApplicationIntoDB = async (data: IApplication) => {
   const application = await Application.create(data);
@@ -117,6 +123,9 @@ const getAllApplications = async (
     console.log('from cache');
     return cache;
   }
+
+  console.log(query);
+  
   let filter: Record<string, any> = {};
 
   // -----------------------
@@ -164,7 +173,6 @@ const getAllApplications = async (
       ...(query.interview_type ? { isInterviewCompleted: interviewType } : {}),
     };
 
-    console.log(filter);
 
     if (min !== null && max !== null) {
       filter.jobMatch = { $gte: min, $lte: max };
@@ -180,6 +188,9 @@ const getAllApplications = async (
       user_deleted: { $ne: true },
     };
   }
+
+
+  
 
   const applicationQuery = new QueryBuilder(Application.find(filter), query)
     .paginate()
@@ -206,7 +217,22 @@ const getAllApplications = async (
   ]);
 
   const data = {
-    data: applications,
+    data: applications.map((application) => {
+      if(query?.status!=='INTERVIEW'){
+        return application;
+      }
+
+      const interviewdate: any = new Date(application?.interviewDetails?.date!);
+      const remainingDays = Math.floor(
+        (interviewdate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      )
+
+      return {
+        ...application.toJSON(),
+        remainingDays
+      }
+
+    }),
     pagination,
   };
 
@@ -261,7 +287,8 @@ const autoApplyForJobPosts = async (
   autoApplyId: string
 ) => {
   try {
-    console.log(cvPath);
+  // time delay
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const aiFile = await openAiFileUpload(cvPath);
     const userProfile = await User.findById(user.id);
@@ -274,13 +301,14 @@ const autoApplyForJobPosts = async (
         deadline: { $gte: new Date() },
         status: 'active',
         // _id: { $nin: applications.map(app => app.post) }
-      })
+      }).populate('recruiter', 'name')
         .lean()
         .exec()
     ).map(post => ({
       ...post,
       _id: post._id.toString(),
-      recruiter: post.recruiter.toString(),
+      recruiter: post.recruiter._id.toString(),
+      companyName: (post.recruiter as any)?.name,
       category: post.category.toString(),
     }));
 
@@ -294,6 +322,7 @@ const autoApplyForJobPosts = async (
     let completedCount = 0;
 
     for (const postId of postIds) {
+
       try {
         await Application.create({
           user: user.id,
@@ -311,7 +340,6 @@ const autoApplyForJobPosts = async (
           completed: completedCount,
           total: postIds.length,
           posts: postIds
-            ?.filter((v: any) => v._id !== (postId as any)._id)
             .slice(0, 5),
         });
       } catch (error) {
@@ -343,7 +371,7 @@ const getAutoApplyResults = async (id: string) => {
 
 const getRecentApplications = async (query: Record<string, any>) => {
   const data = new QueryBuilder(
-    Application.find({}, { user: 1, jobMatch: 1, year_of_experience: 1 }),
+    Application.find({}, { user: 1, jobMatch: 1, year_of_experience: 1,post:1 }),
     query
   )
     .sort()
@@ -388,7 +416,7 @@ const singleApplicationDetails = async (id: string) => {
     .populate([
       {
         path: 'post',
-        select: 'title description thumbnail location',
+        select: 'title description thumbnail location job_type job_level min_salary max_salary required_skills deadline',
       },
       {
         path: 'recruiter',
@@ -400,8 +428,112 @@ const singleApplicationDetails = async (id: string) => {
       },
     ])
     .lean();
-  return data;
+    if(!data){
+      throw new ApiError(404, 'Application not found');
+    }
+    if(data?.status !== APPLICATION_STATUS.INTERVIEW){
+     return data
+    }
+    const remainingDays = Math.floor((new Date(data?.interviewDetails?.date!).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  return {
+    ...data,
+    remainingDays
+  };
 };
+
+
+const startExtarnerNalInterviewOfApplication = async (applicationId: string) => {
+  const application = await Application.findById(applicationId);
+  if (!application) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Application not found!');
+  }
+  const recruiter = await User.findById(application.recruiter);
+  if (!recruiter) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Recruiter not found!');
+  }
+  const candidate = await User.findById(application.user);
+  if (!candidate) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Candidate not found!');
+  }
+
+  const zoomURl = await generateZoomLink()
+  const chat:any = await ChatService.createChatToDB([recruiter._id,candidate._id]);
+  
+  await kafkaProducer.sendMessage("chat",{type:"create",data:{
+    sender:recruiter._id,
+    receiver:candidate._id,
+    type:"zoom-link",
+    text:zoomURl,
+    chatId:chat._id,
+    isCustom:true
+
+  }})
+
+  emailHelper.sendEmail({
+    to: candidate.email,
+    subject: `Interview Scheduled for ${candidate.name}`,
+    html: `Hello ${candidate.name},<br><br>You have been scheduled an interview for ${candidate.name}.<br><br>Please find the Zoom link below:<br>${zoomURl}<br><br>Best regards,<br>${recruiter.name}`,
+  })
+
+  return zoomURl
+}
+
+
+const changeIterviewDetailsOfApplication = async (applicationId: string,data:IApplication["interviewDetails"]) => {
+  console.log(data);
+  
+  const application = await Application.findById(applicationId).populate('post');
+  if (!application) {
+    return
+  }
+  await Application.findByIdAndUpdate(applicationId,{interviewDetails:data},{new:true})
+    await RedisHelper.keyDelete(`applications:${application.recruiter}:*`);
+  await RedisHelper.keyDelete(`applications:${application.user}:*`);
+  const candidate = await User.findById(application.user);
+  await sendNotifications({
+    title:"Interview Details Updated",
+    message:`Interview details of ${(application.post as any)?.title} has been updated. No your interview will be on ${new Date(data?.date!).toLocaleString()}`,
+    filePath:"application",
+    referenceId:applicationId as any,
+    isRead:false,
+    receiver:[application.user]
+  })
+  // await emailHelper.sendEmail({
+  //   to: candidate?.email!,
+  //   subject: `Interview Details Updated for ${(application.post as any)?.title}`,
+  //   html:`Your interview details of ${(application.post as any)?.title} has been updated. No your interview will be on ${new Date(data?.date!).toLocaleString()} ${data?.time}.<br><br>Best regards,<br>${candidate?.name}`,
+  // })
+
+
+  return
+}
+
+
+const cancelInterviewOfApplication = async (applicationId: string,reson:string) => {
+  const application = await Application.findById(applicationId).populate('post');
+  if (!application) {
+    return
+  }
+  await Application.findByIdAndUpdate(applicationId,{inteviewStatus:"cancelled",interviewCancelledReason:reson},{new:true})
+    await RedisHelper.keyDelete(`applications:${application.recruiter}:*`);
+  await RedisHelper.keyDelete(`applications:${application.user}:*`);
+  const candidate = await User.findById(application.user);
+  await sendNotifications({
+    title:"Interview Cancelled",
+    message:`Interview of ${(application.post as any)?.title} has been cancelled.`,
+    filePath:"application",
+    referenceId:applicationId as any,
+    isRead:false,
+    receiver:[application.user]
+  })
+  await emailHelper.sendEmail({
+    to: candidate?.email!,
+    subject: `Interview Cancelled for ${(application.post as any)?.title}`,
+    html:`Your interview of ${(application.post as any)?.title} has been cancelled.<br><br>Best regards,<br>${candidate?.name}`,
+  })
+
+  return
+}
 
 export const ApplicationServices = {
   createApplicationIntoDB,
@@ -414,4 +546,7 @@ export const ApplicationServices = {
   getRecentApplications,
   getUserApplications,
   singleApplicationDetails,
+  startExtarnerNalInterviewOfApplication,
+  changeIterviewDetailsOfApplication,
+  cancelInterviewOfApplication
 };

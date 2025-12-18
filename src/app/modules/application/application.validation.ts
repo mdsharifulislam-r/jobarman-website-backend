@@ -51,9 +51,31 @@ const autoApplySchema = z.object({
     resume: z.any(),
   }),
 })
+
+const changeInterviewDetailsZodSchema = z.object({
+  params: z.object({
+    id: z.string().refine((v) => Types.ObjectId.isValid(v), { message: 'Id must be a valid ObjectId' }),
+  }),
+  body: z.object({
+    date: z.string().optional(),
+    time: z.string().optional(),
+    interview_type: z.enum(['remote', 'onsite']).optional()
+  })
+})
+
+const cancelApplicationZodSchema = z.object({
+  params: z.object({
+    id: z.string().refine((v) => Types.ObjectId.isValid(v), { message: 'Id must be a valid ObjectId' }),
+  }),
+  body: z.object({
+    reason: z.string().optional(),
+  })
+})
 export const ApplicationValidations = {
   createApplicationZodSchema,
   changeStatusSchema,
   sendFeedBackSchema,
-  autoApplySchema
+  autoApplySchema,
+  changeInterviewDetailsZodSchema,
+  cancelApplicationZodSchema
 };

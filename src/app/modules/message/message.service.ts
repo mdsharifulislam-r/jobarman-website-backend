@@ -5,10 +5,10 @@ import { Message } from './message.model';
 import { Chat } from '../chat/chat.model';
 import { generateZoomLink } from '../../../helpers/zoomHelper';
 
-const sendMessageToDB = async (payload: Partial<IMessage>): Promise<IMessage> => {
+const sendMessageToDB = async (payload: Partial<IMessage>&{isCustom?:boolean}): Promise<IMessage> => {
   // save to DB
 
-if(payload.type=="zoom-link"){
+if(payload.type=="zoom-link" && !payload.isCustom){
   const link= await generateZoomLink()
   payload.text=link;
 }

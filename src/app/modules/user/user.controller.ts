@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
-import { getSingleFilePath } from '../../../shared/getFilePath';
+import { getMultipleFilesPath, getSingleFilePath } from '../../../shared/getFilePath';
 import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
 import { ResumeAnalysis } from './user.model';
@@ -12,6 +12,7 @@ import ApiError from '../../../errors/ApiError';
 import { SpotlightServices } from '../spotlight/spotlight.service';
 import { PostServices } from '../post/post.service';
 import { SupportServices } from '../support/support.service';
+import { Types } from 'mongoose';
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -84,12 +85,10 @@ const updateProfile = catchAsync(
 );
 
 const createGallery = catchAsync(async (req: Request, res: Response) => {
-  const { ...galleryData } = req.body;
-  const image = getSingleFilePath(req.files, 'image');
-  galleryData.image = image;
+  const image = getMultipleFilesPath(req.files, 'image');
   const result = await UserService.createGalleryIntoDB({
     user: (req.user as any)?.id,
-    ...galleryData,
+  image: image!,
   });
 
   sendResponse(res, {
@@ -203,6 +202,9 @@ const updateWorkExperience = catchAsync(async (req: Request, res: Response) => {
 
 const anlaizeUserResume = catchAsync(async (req: Request, res: Response) => {
   const filePath = getSingleFilePath(req.files, 'resume');
+  if(!filePath){
+    throw new ApiError(400, 'Resume not found');
+  }
   const resumeAnalysis= await ResumeAnalysis.create({
     user: (req.user as any).id,
     filePath: filePath!,
@@ -218,6 +220,9 @@ const anlaizeUserResume = catchAsync(async (req: Request, res: Response) => {
 
 const getResultOfResumeAnalysis = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  if(!(new Types.ObjectId(id))){
+    throw new ApiError(400, 'Invalid id');
+  }
   const result = await ResumeAnalysis.findById(id);
   sendResponse(res, {
     success: true,

@@ -9,6 +9,7 @@ import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.produc
 import { getMultipleFilesPath, getSingleFilePath } from '../../../shared/getFilePath';
 import { Application, AutoApply } from './application.model';
 import { APPLICATION_STATUS } from '../../../enums/application';
+import { IApplication } from './application.interface';
 const createApplication = catchAsync(async (req: Request, res: Response) => {
     const { ...applicationData } = req.body;
     const resume = getSingleFilePath(req.files, 'resume');
@@ -61,9 +62,9 @@ const updateStatusOfApplications = catchAsync(async (req: Request, res: Response
         throw new ApiError(400, 'Application already in this status');
     }
 
-    if([APPLICATION_STATUS.REJECTED,APPLICATION_STATUS.INTERVIEW].includes(application.status)){
-        throw new ApiError(403, 'You can not update this application');
-    }
+    // if([APPLICATION_STATUS.REJECTED,APPLICATION_STATUS.INTERVIEW].includes(application.status)){
+    //     throw new ApiError(403, 'You can not update this application');
+    // }
      if(body.status == APPLICATION_STATUS.REJECTED){
         if(!body.rejectedReason){
             throw new ApiError(400, 'Rejected reason is required');
@@ -184,6 +185,77 @@ const getApplication = catchAsync(async (req: Request, res: Response) => {
         data: result
     });
 })
+
+
+const startInterview = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await ApplicationServices.startExtarnerNalInterviewOfApplication(id);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Interview started successfully',
+        data: result
+    })
+})
+
+const changeTimedateOfIterview = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    let data = req.body
+    if(!Boolean(data?.date) || !Boolean(data?.time)){
+        throw new ApiError(400, 'Interview details are required');
+    }
+  
+    data = {
+        ...data,
+        date: new Date(`${data?.date!||''} ${data?.time!||''}`)!
+    }
+    if(data.date == 'Invalid Date'){
+        throw new ApiError(400, 'Invalid date');
+        
+    }
+    if(new Date(data?.date!)< new Date()){
+        throw new ApiError(400, 'Interview date is in the past');
+    }
+
+    await kafkaProducer.sendMessage("application", {type:"changeInterviewDetails",data:{_id:id,data:data}});
+
+
+
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Interview time updated successfully',
+        data: data
+    })
+})
+
+const cancelInterview = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const application = await Application.findById(id);
+    if(!application){
+        throw new ApiError(404, 'Application not found');
+    }
+    if(application.inteviewStatus === "cancelled"){
+        throw new ApiError(400, 'Interview is already cancelled');
+    }
+    if(application.status !== APPLICATION_STATUS.INTERVIEW){
+        throw new ApiError(400, 'Application is not in interview');
+    }
+    if(new Date(application.interviewDetails?.date!)< new Date()){
+        throw new ApiError(400, 'Interview date is in the past');
+    }
+    
+    await kafkaProducer.sendMessage("application", {type:"cancelInterview",data:{_id:id,data:req.body.reason}});
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Interview cancelled successfully',
+        data: {
+            _id:id,
+            data:req.body.reason||''
+        }
+    })
+})
 export const ApplicationController = {
     createApplication,
     getApplications,
@@ -194,6 +266,9 @@ export const ApplicationController = {
     autoApplyResultsForUser,
     recentApplications,
     getApplicationsByUser,
-    getApplication
+    getApplication,
+    startInterview,
+    changeTimedateOfIterview,
+    cancelInterview
 
 };

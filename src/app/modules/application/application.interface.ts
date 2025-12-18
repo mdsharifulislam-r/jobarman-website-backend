@@ -26,7 +26,8 @@ export type IApplication = {
   reqruiter_deleted?:boolean,
   feedback?:string,
   isAutoApplied?:boolean,
-  autoApplyId?:Types.ObjectId
+  autoApplyId?:Types.ObjectId,
+  interviewCancelledReason?:string
 };
 
 export type IAutoApply = {

@@ -13,6 +13,7 @@ import { User } from '../user/user.model';
 import { PostHelper } from './post.helper';
 import { Favourite } from '../favourite/favourite.model';
 import { StatusCodes } from 'http-status-codes';
+import stripe from '../../../config/stripe';
 
 const createPostIntoDB = async (post: IPost): Promise<IPost> => {
   const result = await Post.create(post);
@@ -196,7 +197,7 @@ const getPostsFromDB = async (query: Record<string, any>, user: JwtPayload) => {
   const postQuery = new QueryBuilder(Post.find(initalQuery), query)
     .paginate()
     .sort()
-    .filter(['is_deleted','downloadType'])
+    .filter(['is_deleted','downloadType',"shortForm"])
     .search(['title', 'description']);
   const [posts, pagination] = await Promise.all([
     postQuery.modelQuery.populate('recruiter', 'name email image').exec(),
@@ -204,7 +205,27 @@ const getPostsFromDB = async (query: Record<string, any>, user: JwtPayload) => {
   ]);
 
   return {
-    data: posts,
+    data:user.role ==USER_ROLES.RECRUITER? query.shortForm=='true'? posts.map((post) => ({name:post.title,_id:post._id})):await Promise.all(
+        posts.map(async (post) => {
+        const applications = await Application.find({
+          post: post._id,
+        }).populate('user').sort('-createdAt').limit(4);
+        
+        const userImages = applications.map((application: any) => {
+          return application.user.image;
+        });
+
+        const totalapplications = await Application.countDocuments({
+          post: post._id,
+        })
+        
+        return {
+          ...post.toObject(),
+          userImages,
+          totalapplications:totalapplications>4?totalapplications-4:totalapplications
+        };
+      })
+    ):posts,
     pagination,
   };
 };
@@ -369,7 +390,8 @@ const recentPostsFromDB = async (query: Record<string, any>) => {
     .filter(['is_deleted'])
     .search(['title', 'description']);
   const [posts, pagination] = await Promise.all([
-    postQuery.modelQuery.exec(),
+    postQuery.modelQuery
+      .populate('recruiter', 'name email image').exec(),
     postQuery.getPaginationInfo(),
   ]);
 
@@ -398,10 +420,17 @@ const getSinglePostDetails = async (id: string) => {
     throw new ApiError(404, 'Post not found');
   }
   await RedisHelper.redisSet(`post:${id}`, post);
+  const userImages= (await Application.find({post:id}).populate('user').limit(4)).map((application:any) => application.user.image);
+  const totalapplications = await Application.countDocuments({post:id});
+
   return {
     ...post,
     category: (post.category as any)?.name,
+    categoryId: (post.category as any)?._id,
+    totalapplications,
+    userImages
   };
+
 };
 
 export const PostServices = {

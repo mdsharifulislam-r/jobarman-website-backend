@@ -28,6 +28,7 @@ const applicationSchema = new Schema<IApplication, ApplicationModel>({
   feedback: { type: String, required: false },
   isAutoApplied: { type: Boolean, default: false },
   autoApplyId: { type: Schema.Types.ObjectId, ref: 'AutoApply', required: false },
+  interviewCancelledReason: { type: String, required: false },
 },{
   timestamps:true
 });

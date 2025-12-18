@@ -15,6 +15,9 @@ import { Post } from '../post/post.model';
 import { RedisHelper } from '../../../tools/redis/redis.helper';
 import { query } from 'express';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { Subscription } from '../subscription/subscription.model';
+import { Application } from '../application/application.model';
+import { APPLICATION_STATUS } from '../../../enums/application';
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
   //set role
@@ -55,8 +58,28 @@ const getUserProfileFromDB = async (
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
+  const subscription = await Subscription.findOne({ user: id, status: "active" })
   delete isExistUser.password;
-  return isExistUser;
+  if(isExistUser.role == USER_ROLES.RECRUITER){
+    const activePosts = await Post.countDocuments({recruiter:isExistUser._id,status:"active"});
+    const pendingRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.PENDING});
+    const shortlistRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.SHORTLISTED});
+    const interviewRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.INTERVIEW});
+    return {
+      ...isExistUser.toJSON(),
+      subscription: subscription?._id? subscription.name: "No Subscription",
+      overviewSummury:{
+        activePosts,
+        pendingRequest,
+        shortlistRequest,
+        interviewRequest
+      }
+    };
+  }
+  return {
+    ...isExistUser.toJSON(),
+    subscription: subscription?._id? subscription.name: "No Subscription",
+  };
 };
 
 const updateProfileToDB = async (
@@ -81,13 +104,13 @@ const updateProfileToDB = async (
   return updateDoc;
 };
 
-const createGalleryIntoDB = async (payload: any) => {
+const createGalleryIntoDB = async (payload: {user: string,image:string[]}) => {
   const { user } = payload;
   const isExistUser = await User.isExistUserById(user);
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
-  const gallery = await Gallery.create(payload);
+  const gallery = await Gallery.insertMany(payload.image.map((image) => ({ user, image })));
   return gallery;
 };
 

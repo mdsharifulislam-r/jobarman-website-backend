@@ -33,6 +33,8 @@ const updatePost = catchAsync(async (req: Request, res: Response) => {
     const id = req.params.id;
     post._id = id;
     post.thumbnail = image!;
+    console.log(post);
+    
     await kafkaProducer.sendMessage("post", {type:"update",data:post});
     sendResponse(res, {
         statusCode: StatusCodes.OK,

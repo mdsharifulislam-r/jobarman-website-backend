@@ -47,6 +47,12 @@ export const applicationConsumer = async () => {
                 const {user:Iuser,percentage:percentageNumber,filePath,title} = data.data;
                 const autoApply = await ApplicationServices.autoApplyForJobPosts(Iuser, filePath, title, percentageNumber,data.data._id);
                 break;
+            case "changeInterviewDetails":
+                await ApplicationServices.changeIterviewDetailsOfApplication(data.data._id,data.data.data);
+                break;
+            case "cancelInterview":
+                await ApplicationServices.cancelInterviewOfApplication(data.data._id,data.data);
+                break;
             default:
                 console.log("Invalid type");
                 break;

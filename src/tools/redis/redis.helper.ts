@@ -43,7 +43,9 @@ const keyDelete = async (pattern: string) => {
 
   // Use pipeline for efficient deletion
   const pipeline = redisClient.multi();
-  keys.forEach((key) => pipeline.del(key));
+  keys.forEach((key) =>{
+    if(key.length) pipeline.del(key);
+  });
   await pipeline.exec();
 };
 

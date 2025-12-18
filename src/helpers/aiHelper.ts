@@ -75,6 +75,7 @@ const demoPostData = {
     job_level:"senior",
     recruiter:"64b8f4f5f1d2c2a5e4b6c7d8",
     experience_level:"experienced",
+    companyName:"Google",
     min_salary:50000,
     max_salary:80000,
     location:"New York, USA",
@@ -227,6 +228,7 @@ const result = await chatbot.chat.completions.create({
   });
 
   const raw = result.choices[0].message.content || "";
+
 
   const clean = raw.replace(/\n/g, "").replace(/```json|```/g, "").trim();
   const cleanResult = JSON.parse(clean);

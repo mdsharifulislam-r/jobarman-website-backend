@@ -31,7 +31,7 @@ const getSummuryFromDb = async () => {
     toalJobSeekers,
     toalRecruiters,
     totalActiveJobs,
-    totalRevinue: totalRevinue.length > 0 ? totalRevinue[0].total : 0,
+    totalRevinue: totalRevinue.length > 0 ? Number(totalRevinue[0].total).toFixed(2) : 0,
   };
 };
 

@@ -12,6 +12,8 @@ export const chatConsumer = async () => {
                     break;
                 case "delete":
                     break;
+                case "custom":
+                    break;
             }
         } catch (error) {
          console.log(error);
