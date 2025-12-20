@@ -14,6 +14,9 @@ export const postConsumer = async () => {
             case "delete":
                 await PostServices.deletePostFromDB(data.data._id);
                 break;
+            case "bulk_insert":
+                await PostServices.bulkInsertPostIntoDB(data.data);
+                break;
         }
         } catch (error) {
             console.log(error);

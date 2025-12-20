@@ -11,7 +11,9 @@
     "prettier:fix": "prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "stripe": "stripe listen --forward-to http://10.10.7.9:5001/api/stripe/webhook",
-    "create-module": "ts-node ./src/gm.ts"
+    "create-module": "ts-node ./src/gm.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",

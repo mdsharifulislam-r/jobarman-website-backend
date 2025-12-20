@@ -5,20 +5,25 @@ import { StatusCodes } from 'http-status-codes';
 import { MessageService } from './message.service';
 import { getMultipleFilesPath, getSingleFilePath } from '../../../shared/getFilePath';
 import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.producer';
+import { generateZoomLink } from '../../../helpers/zoomHelper';
 
 const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const user = (req.user as any).id;
 
 
-  let image = getSingleFilePath(req.files, 'image');
+  let image = getMultipleFilesPath(req.files, 'image');
   const docs = getMultipleFilesPath(req.files, 'doc');
 
   const payload = {
     ...req.body,
-    image:image||'',
+    image:image||[],
     sender: user,
     docs:docs||[],
   };
+  if(payload.type=="zoom-link" && !payload.isCustom){
+  const link= await generateZoomLink()
+  payload.text=link;
+}
 
   await kafkaProducer.sendMessage("chat", {type:"create",data:payload});
   sendResponse(res, {
@@ -31,6 +36,8 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
 
 const getMessage = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
+  console.log(id);
+  
   const query = req.query;
   const user = (req.user as any);
   const messages = await MessageService.getMessageFromDB(id, query,user);

@@ -18,6 +18,8 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import { Subscription } from '../subscription/subscription.model';
 import { Application } from '../application/application.model';
 import { APPLICATION_STATUS } from '../../../enums/application';
+import { buildElasticQuery } from '../../../helpers/thirdPartyQueryBuilder';
+import { jobspikrHelper } from '../../../helpers/jobspkrHelper';
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
   //set role
@@ -76,6 +78,14 @@ const getUserProfileFromDB = async (
       }
     };
   }
+
+  // const jobs = await jobspikrHelper.getJobs({
+  //   jobtitles:["Software Developer"]
+  // })
+
+  // console.log(jobs);
+
+  
   return {
     ...isExistUser.toJSON(),
     subscription: subscription?._id? subscription.name: "No Subscription",

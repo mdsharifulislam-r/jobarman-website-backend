@@ -18,7 +18,7 @@ const messageSchema = new Schema<IMessage, MessageModel>(
       required: false 
     },
     image: { 
-      type: String,
+    type: [String],
       required: false 
     },
     seenBy: [

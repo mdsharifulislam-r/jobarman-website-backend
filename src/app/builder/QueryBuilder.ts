@@ -95,6 +95,7 @@ class QueryBuilder<T> {
       limit,
       page,
       totalPage,
+      cursor:0
     };
   }
 }

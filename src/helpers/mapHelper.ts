@@ -1,51 +1,97 @@
 import config from "../config";
 
-export const getFromOSM = async (address: string) => {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+export const getFromGoogleMaps = async (address: string) => {
+try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
     address
-  )}`;
+  )}&key=${config.googleMaps.key}`;
 
-  try {
-    const url = `https://us1.locationiq.com/v1/search.php?key=${config.locationQ.key}&q=${address}&format=json`;
-    const res = await fetch(url);
-
-
-
-    
-    const data: any = await res.json();
-
-
-    
-    
-    return {
-      latitude: data[0]?.lat,
-      longitude: data[0]?.lon,
-      place: data[0]?.display_name,
-    };
-  } catch (err) {
-    console.error('OSM fallback error:', err);
-    console.error('OSM primary failed, falling back to LocationIQ...');
-    // Example fallback provider
-     const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'VoyazenApp/1.0 (sharif@example.com)',
-      },
-    });
-
-
-
-    const results: any = await response.json();
-    
-    if(results?.length < 1) throw new Error('No results from OSM');
-    
-    if (!results.length) return {};
-
-
-
-    return {
-      latitude: parseFloat(results[0].lat),
-      longitude: parseFloat(results[0].lon),
-      place: results[0].display_name,
-    };
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Google Maps error: ${res.status}`);
   }
+
+  const data = await res.json();
+
+  if (data.status !== "OK" || !data.results?.length) {
+    throw new Error("No results from Google Maps");
+  }
+
+  const result = data.results[0];
+
+  return {
+    latitude: result.geometry.location.lat,
+    longitude: result.geometry.location.lng,
+    place: result.formatted_address,
+  };
+} catch (error) {
+  console.log(error);
+  
+}
 };
+
+
+const getCountryName = async (address: string) => {
+  try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+    address
+  )}&key=${config.googleMaps.key}`;
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Google Maps error: ${res.status}`);
+  }
+
+  const data = await res.json();
+
+  if (data.status !== "OK" || !data.results?.length) {
+    throw new Error("No results from Google Maps");
+  }
+
+  const result = data.results?.[0]
+  console.log(result);
+  
+  return {
+    country: result.address_components.find(
+      (component: any) => component.types[0] === "country"
+    )?.long_name,
+    state: result.address_components.find(
+      (component: any) => component.types[0] === "administrative_area_level_1"
+    )?.long_name
+  }
+
+  } catch (error) {
+    console.log(error);
+    return
+    
+  }
+}
+
+const getCountryAndStateFromLatLong = async (latitude: number, longitude: number) => {
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${config.googleMaps.key}`;
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    return ""
+  } 
+
+  const data = await res.json();
+
+  if (data.status !== "OK" || !data.results?.length) {
+    return ""
+  }
+
+  const result = data.results?.[0]
+  console.log(result);
+  
+  return {
+    country: result.address_components.find(
+      (component: any) => component.types[0] === "country"
+    )?.long_name,
+    state: result.address_components.find(
+      (component: any) => component.types[0] === "administrative_area_level_1"
+    )?.long_name
+  }
+}
+
+export const mapHelper = { getFromGoogleMaps, getCountryName , getCountryAndStateFromLatLong};

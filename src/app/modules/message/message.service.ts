@@ -8,10 +8,7 @@ import { generateZoomLink } from '../../../helpers/zoomHelper';
 const sendMessageToDB = async (payload: Partial<IMessage>&{isCustom?:boolean}): Promise<IMessage> => {
   // save to DB
 
-if(payload.type=="zoom-link" && !payload.isCustom){
-  const link= await generateZoomLink()
-  payload.text=link;
-}
+
 
   const response = await Message.create(payload);
   const receiver = (await Chat.findById(payload.chatId))?.participants.filter(
@@ -44,11 +41,13 @@ const getMessageFromDB = async (id: any,query:Record<string,any>,user:JwtPayload
   const anotherParticipant = chat.participants.filter(
     (participant) => participant.toString() !== user?.id
   )[0]
+
+
   
   const MessageQuery = new QueryBuilder(
     Message.find({ chatId: id }),
     query
-  ).paginate()
+  ).paginate().sort();
   const [messages, pagination] = await Promise.all([
     MessageQuery.modelQuery.lean(),
     MessageQuery.getPaginationInfo(),

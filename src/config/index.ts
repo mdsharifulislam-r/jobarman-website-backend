@@ -54,4 +54,11 @@ export default {
   locationQ: {
     key: process.env.LOCATIONIQ_API_KEY,
   },
+  jobspikr:{
+    client_id:process.env.JOBSPIKR_CLIENT_ID,
+    client_auth_key:process.env.JOBSPIKR_CLIENT_AUTH_KEY
+  },
+  googleMaps: {
+    key: process.env.GOOGLE_MAPS_API_KEY,
+  },
 };

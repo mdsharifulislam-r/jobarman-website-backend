@@ -4,6 +4,7 @@ import catchAsync from '../../../shared/catchAsync';
 import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.producer';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
+import { cleanObject } from '../../../helpers/cleanObject';
 
 const createResume = catchAsync(async (req: Request, res: Response) => {
     const { ...resumeData } = req.body;
@@ -21,7 +22,9 @@ const updateResume = catchAsync(async (req: Request, res: Response) => {
     const { ...resumeData } = req.body;
     const id = req.params.id;
     resumeData._id = id;
-    await kafkaProducer.sendMessage("resume", {type:"update",data:resumeData});
+
+    
+    await kafkaProducer.sendMessage("resume", {type:"update",data:cleanObject(resumeData)});
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,

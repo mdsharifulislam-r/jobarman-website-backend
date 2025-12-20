@@ -55,7 +55,7 @@ const updateApplicationStatusToDB = async (
     await Application.findOneAndUpdate(
       { _id: id },
       {
-        status: APPLICATION_STATUS.INTERVIEW,
+        status: APPLICATION_STATUS.REJECTED,
         $push: {
           history: {
             title: 'Rejected',
@@ -73,7 +73,7 @@ const updateApplicationStatusToDB = async (
     const data = await Application.findOneAndUpdate(
       { _id: id },
       {
-        status: status,
+        status: APPLICATION_STATUS.INTERVIEW,
         $push: {
           history: {
             title: 'Interview',
@@ -307,9 +307,9 @@ const autoApplyForJobPosts = async (
     ).map(post => ({
       ...post,
       _id: post._id.toString(),
-      recruiter: post.recruiter._id.toString(),
+      recruiter: post?.recruiter?._id.toString(),
       companyName: (post.recruiter as any)?.name,
-      category: post.category.toString(),
+      category: post?.category?.toString(),
     }));
 
     const postIds = await AIHelper.getJobMatchAutoApplyPersentances(

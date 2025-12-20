@@ -9,6 +9,7 @@ type IData<T> = {
     limit: number;
     totalPage: number;
     total: number;
+    cursor?: number
   };
   data?: T;
 };

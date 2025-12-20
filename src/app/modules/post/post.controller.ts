@@ -7,14 +7,21 @@ import { IPost } from './post.interface';
 import ApiError from '../../../errors/ApiError';
 import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.producer';
 import { getSingleFilePath } from '../../../shared/getFilePath';
+import { getFromGoogleMaps } from '../../../helpers/mapHelper';
 
 const createPost = catchAsync(async (req: Request, res: Response) => {
     const post:IPost = req.body;
     const image = getSingleFilePath(req.files, 'image');
     const user = (req.user as any);
     post.recruiter = user!.id;
-    post.thumbnail = image!;
+    post.thumbnail = image! || post?.prevImage!;
+    post.prevPostId = post?.prevPostId || undefined;
+    post.is_repost = post?.prevPostId ? true : false;
 
+    const isValidAddress = await getFromGoogleMaps(post.location);
+    if(!isValidAddress){
+      throw new ApiError(400, 'Invalid address');
+    }
 
     await kafkaProducer.sendMessage("post", {type:"create",data:post});
     

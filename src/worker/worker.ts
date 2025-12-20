@@ -37,8 +37,8 @@ export const matchAndApplyPost = async (user: IUser & { _id: string }) => {
     post = post.map(post => ({
       ...post,
       _id: post._id.toString(),
-      recruiter: post.recruiter.toString(),
-      category: post.category.toString(),
+      recruiter: post?.recruiter?.toString(),
+      category: post?.category?.toString(),
     })) as any;
     const aiSuggesstionPost = await AIHelper.getJobMatchAutoApplyPersentances(
       user._id,

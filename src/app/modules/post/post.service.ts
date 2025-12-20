@@ -14,10 +14,23 @@ import { PostHelper } from './post.helper';
 import { Favourite } from '../favourite/favourite.model';
 import { StatusCodes } from 'http-status-codes';
 import stripe from '../../../config/stripe';
+import { jobspikrHelper } from '../../../helpers/jobspkrHelper';
+import { sendNotifications } from '../../../helpers/notificationsHelper';
+import { IQuery } from '../../../helpers/thirdPartyQueryBuilder';
+import { mapHelper } from '../../../helpers/mapHelper';
+import { Category } from '../category/category.model';
 
 const createPostIntoDB = async (post: IPost): Promise<IPost> => {
   const result = await Post.create(post);
   await RedisHelper.keyDelete('post_feed:*');
+  await sendNotifications({
+    title:`Your post has been created`,
+    message:`Your post has been created successfully`,
+    filePath:"post",
+    referenceId:result._id as any,
+    isRead:false,
+    receiver:[post?.recruiter!]
+  })
   return result;
 };
 
@@ -64,21 +77,33 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
     return cache;
   }
+  const limit = Number(query.limit) || 10;
   const initalQuery = {
     is_deleted: false,
     status: { $ne: 'closed' },
   } as Record<string, any>;
+
+  let elasticQuery = {} as IQuery
   if (query.minPrice) {
     initalQuery.min_salary = { $gte: query.minPrice };
+    elasticQuery.minSalary = query.minPrice
   }
 
   if(query.location){
     initalQuery.location = { $regex: query.location, $options: 'i' };
+    const address = await mapHelper.getCountryName(query.location);
+    if(address?.country){
+      elasticQuery.location = [address.country]
+    }
+    if(address?.state){
+      elasticQuery.state = [address.state]
+    }
   }
 
   if(query.tags){
     const array = query.tags.split(',');
     initalQuery.required_skills = { $in: array };
+    elasticQuery.skill = array
   }
 
   if(query.dateLimit){
@@ -89,32 +114,47 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
   if (query.maxPrice) {
     initalQuery.max_salary = { $lte: query.maxPrice };
+    elasticQuery.maxSalary = query.maxPrice
   }
 
   if (query.startDate) {
     initalQuery.createdAt = { $gte: query.startDate };
+    elasticQuery.postDate = new Date(query.startDate).toISOString().split('T')[0];
   }
 
   if (query.category) {
-    console.log(query.category);
-    
+   
     const array = query.category.split(',');
-    initalQuery.category = { $in: array };
+
+     const getAllCategories = await Category.find({_id:{$in:array}})
+     elasticQuery.jobtitles = getAllCategories?.map((cat: any) => cat.name);
+     initalQuery.$or= [
+      {category:{$in:array}},
+      {category_string:{$in:getAllCategories?.map((cat: any) => cat.name)}}
+     ]
+
   }
 
   if (query.job_type) {
     const array = query.job_type.split(',');
     initalQuery.job_type = { $in: array };
+    
   }
 
   if (query.job_level) {
     const array = query.job_level.split(',');
     initalQuery.job_level = { $in: array };
+    elasticQuery.jobTypes = array
   }
 
   if (query.experience_level) {
     const array = query.experience_level.split(',');
     initalQuery.experience_level = { $in: array };
+    if(elasticQuery.jobTypes?.length){
+      elasticQuery.jobTypes = [...elasticQuery.jobTypes,...array]
+    }else{
+      elasticQuery.jobTypes = array
+    }
   }
 
   if(query.radius){
@@ -159,6 +199,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     postQuery.getPaginationInfo(),
   ]);
 
+
   const data = {
     data: await Promise.all(
       posts.map(async (post) => {
@@ -183,6 +224,24 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     ),
     pagination,
   };
+
+  if(query?.searchTerm){
+    if(elasticQuery?.jobtitles?.length){
+      elasticQuery.jobtitles = [...elasticQuery.jobtitles,query.searchTerm]
+    }else{
+      elasticQuery.jobtitles = [query.searchTerm]
+    }
+  }
+
+  // third party posts 
+
+  const thirdPosts = await PostHelper.fullfillDataUsingTheThirdPartyApis(data.data.length,user.id,limit,elasticQuery,Number(query?.cursor),query?.category?.split(',')[0]);
+
+  data.data = [...data.data,...(thirdPosts?.data||[])];
+
+  if(thirdPosts?.cursor){
+    data.pagination.cursor = thirdPosts?.cursor;
+  }
 
   await RedisHelper.redisSet(`post_feed`, data, query);
   return data;
@@ -433,6 +492,13 @@ const getSinglePostDetails = async (id: string) => {
 
 };
 
+
+const bulkInsertPostIntoDB = async (posts: IPost[]) => {
+  const result = await Post.insertMany(posts);
+  await RedisHelper.keyDelete('post_feed:*');
+  return result;
+};
+
 export const PostServices = {
   createPostIntoDB,
   updatePostToDB,
@@ -443,4 +509,5 @@ export const PostServices = {
   getRecomendedPostsFromDB,
   recentPostsFromDB,
   getSinglePostDetails,
+  bulkInsertPostIntoDB
 };

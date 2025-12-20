@@ -2,6 +2,10 @@ import { JwtPayload } from "jsonwebtoken";
 import { Post } from "./post.model";
 import { Favourite } from "../favourite/favourite.model";
 import { Application } from "../application/application.model";
+import { jobspikrHelper } from "../../../helpers/jobspkrHelper";
+import { IQuery } from "../../../helpers/thirdPartyQueryBuilder";
+import { kafkaProducer } from "../../../tools/kafka/kafka-producers/kafka.producer";
+import { mapHelper } from "../../../helpers/mapHelper";
 
 function getStartDateFromFilter(filter: string): string {
   const now = new Date();
@@ -81,7 +85,14 @@ const getDataByRange = async (
     is_favorite: favSet.has(post._id.toString()),
     is_applied: appSet.has(post._id.toString()),
   }));
-
+  let cursor = 0
+  if(data.length < limit) {
+    const address = await mapHelper.getCountryAndStateFromLatLong(lat,lng) as any
+    query.location = address?.state?address.state:address?.country
+    const apiData = await fullfillDataUsingTheThirdPartyApis(data.length,user.id,limit,query)
+    data.push(...apiData?.data)
+    cursor = apiData?.cursor!
+  }
   return {
     data,
     pagination: {
@@ -89,9 +100,31 @@ const getDataByRange = async (
       limit,
       total,
       totalPage: Math.ceil(total / limit),
+      cursor
     },
   };
 };
 
 
-export const PostHelper = { getStartDateFromFilter,getDataByRange };
+const fullfillDataUsingTheThirdPartyApis = async (existingDataLength:number,userid:string,limit:number=10,query?:IQuery,cursor?:number,category?:string) => {
+  const needPosts = limit - existingDataLength;
+
+  if(needPosts > 0) {
+    const apiData = await jobspikrHelper.getJobs({
+      ...query,
+      limit:needPosts>10?needPosts:10,
+      cursor
+    },category);
+    await kafkaProducer.sendMessage("post", {type:"bulk_insert",data:apiData?.data as any});
+    return {
+      data:apiData?.data as any,
+      cursor:apiData.next_cursor
+    }
+  }
+}
+
+
+
+
+
+export const PostHelper = { getStartDateFromFilter,getDataByRange,fullfillDataUsingTheThirdPartyApis };

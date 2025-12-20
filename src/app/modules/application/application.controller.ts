@@ -20,7 +20,7 @@ const createApplication = catchAsync(async (req: Request, res: Response) => {
         throw new ApiError(404, 'Post not found');
     }
 
-    if(new Date(post.deadline)< new Date() || post.status === 'closed') {
+    if(new Date(post?.deadline!)< new Date() || post.status === 'closed') {
         throw new ApiError(400, 'Post is closed or deadline is over');
     }
 
