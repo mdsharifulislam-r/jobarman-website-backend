@@ -1,3 +1,4 @@
+import { IPost } from '../app/modules/post/post.interface';
 import { ICreateAccount, IResetPassword } from '../types/emailTamplate';
 
 const createAccount = (values: ICreateAccount) => {
@@ -38,7 +39,184 @@ const resetPassword = (values: IResetPassword) => {
   return data;
 };
 
+const jobMatchEmailTemplate = (values: {
+  userName: string;
+  email: string;
+  jobs: IPost[];
+  isPremiumUser?: boolean
+}) => {
+  const mapJobs = values.jobs.map(
+    (job) => `
+      <tr>
+        <td style="padding:12px 0; border-bottom:1px solid #e5e7eb;">
+          <p style="margin:0; font-size:14px; color:#111827; font-weight:600;">
+            ${job.title} ${job.job_board ? `(${job.job_board})` : ""}
+          </p>
+          <a 
+            href="${job.job_url}" 
+            style="display:inline-block; margin-top:6px; font-size:13px; color:#2563eb; text-decoration:underline;"
+          >
+            View job details
+          </a>
+        </td>
+      </tr>
+    `
+  );
+
+  return {
+    to: values.email,
+    subject: "New Job Matches Just for You | JOBARMAN",
+    // if the user is premium user then show the they can all jobs else show only see the matched jobs count
+    html:values.isPremiumUser? `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>JOBARMAN Job Matches</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f3f4f6; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.06);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#0f172a; padding:22px; text-align:center;">
+              <img 
+                src="https://your-domain.com/logo.png" 
+                alt="JOBARMAN Logo" 
+                style="max-height:42px; margin-bottom:10px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                JOBARMAN
+              </h2>
+              <p style="margin:6px 0 0; color:#c7d2fe; font-size:13px;">
+                Smart job matching powered by AI
+              </p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:26px; color:#374151;">
+              <p style="margin-top:0; font-size:14px;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px;">
+                We’ve found some job opportunities that match your preferences and profile.
+              </p>
+
+              <!-- Job List -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+                ${mapJobs.join("")}
+              </table>
+
+              <!-- Profile Completion Tip -->
+              <div style="margin-top:22px; padding:14px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px;">
+                <p style="margin:0; font-size:13px; color:#0369a1;">
+                  💡 Want better job matches?  
+                  Complete your profile information (skills, experience, and preferences) to get more accurate and relevant job recommendations.
+                </p>
+              </div>
+
+              <p style="margin-top:20px; font-size:14px;">
+                You can explore more personalized opportunities anytime from your JOBARMAN dashboard.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px;">
+                Best wishes,<br />
+                <strong>JOBARMAN Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `:`
+    <!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>JOBARMAN Job Matches</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f3f4f6; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.06);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#0f172a; padding:22px; text-align:center;">
+              <img 
+                src="https://your-domain.com/logo.png" 
+                alt="JOBARMAN Logo" 
+                style="max-height:42px; margin-bottom:10px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                JOBARMAN
+              </h2>
+              <p style="margin:6px 0 0; color:#c7d2fe; font-size:13px;">
+                Smart job matching powered by AI
+              </p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:26px; color:#374151;">
+              <p style="margin-top:0; font-size:14px;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px;">
+              We matched ${values.jobs.length} new job opportunities based on your profile and preferences.
+              Please consider upgrading to our Premium plan to unlock full access to all matched jobs and enjoy enhanced features for a better job search experience.
+              </p>
+
+              <!-- Profile Completion Tip -->
+              <div style="margin-top:22px; padding:14px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px;">
+                <p style="margin:0; font-size:13px; color:#0369a1;">
+                  💡 Want better job matches?  
+                  Complete your profile information (skills, experience, and preferences) to get more accurate and relevant job recommendations.
+                </p>
+              </div>
+
+              <p style="margin-top:20px; font-size:14px;">
+                You can explore more personalized opportunities anytime from your JOBARMAN dashboard.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px;">
+                Best wishes,<br />
+                <strong>JOBARMAN Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `
+  };
+};
+
+
+
 export const emailTemplate = {
   createAccount,
   resetPassword,
+  jobMatchEmailTemplate,
 };

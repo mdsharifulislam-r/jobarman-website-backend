@@ -206,7 +206,6 @@ const anlaizeUserResume = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(400, 'Resume not found');
   }
   const resumeAnalysis= await ResumeAnalysis.create({
-    user: (req.user as any).id,
     filePath: filePath!,
   });
   await kafkaProducer.sendMessage("resume", {type:"analyze",data:{id:resumeAnalysis._id,fileId:filePath}});

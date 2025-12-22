@@ -19,10 +19,10 @@ const markAllNotificationsAsRead = async (user: JwtPayload) => {
 
 const userObjectId = new Types.ObjectId(user.id)
   const result = await Notification.updateMany(
-    { isRead: false, receiver: {
+    { receiver: {
       $in: [user.id]
     } },
-    { $set: { $push: { readers: user.id } } },
+    { $addToSet: { readers: user.id } },
   );
   return result;
 };

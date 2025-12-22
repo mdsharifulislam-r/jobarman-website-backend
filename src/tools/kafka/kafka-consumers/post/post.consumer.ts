@@ -17,6 +17,9 @@ export const postConsumer = async () => {
             case "bulk_insert":
                 await PostServices.bulkInsertPostIntoDB(data.data);
                 break;
+            case "send-job-match-email":
+                await PostServices.sendEmailForMathchedPosts(data.data);
+                break;
         }
         } catch (error) {
             console.log(error);

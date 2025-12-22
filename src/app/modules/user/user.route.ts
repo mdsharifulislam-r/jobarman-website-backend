@@ -85,7 +85,6 @@ router
 router
   .route('/analyze-resume')
   .post(
-    auth(),
     fileUploadHandler(),
     validateRequest(UserValidation.analyzeResumeZodSchema),
     UserController.anlaizeUserResume
@@ -93,7 +92,6 @@ router
 router
   .route('/analyze-resume/:id')
   .get(
-    auth(),
     UserController.getResultOfResumeAnalysis
   )
 router

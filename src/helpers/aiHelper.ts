@@ -1,5 +1,7 @@
+import { Types } from "mongoose";
 import { IPost } from "../app/modules/post/post.interface";
 import { Post } from "../app/modules/post/post.model";
+import { IUser } from "../app/modules/user/user.interface";
 import { User } from "../app/modules/user/user.model";
 import { chatbot } from "../config/open-ai.config";
 import { encode } from "@toon-format/toon";
@@ -147,7 +149,8 @@ ${JSON.stringify({
 }
 
 const analizeResumeHelper = async (fileId: string) => {
-  const prompt = `
+try {
+    const prompt = `
   You are an advanced Resume Analyzer. Analyze the resume provided in the file below and generate a detailed scorecard.
 
 file_id: ${fileId}
@@ -234,12 +237,96 @@ const result = await chatbot.chat.completions.create({
   const cleanResult = JSON.parse(clean);
   console.log('ai auto apply calculation result:', cleanResult);
     return cleanResult
+} catch (error) {
+  console.log(error);
+  
+}
 
+}
+
+
+const usersInfoResponse = {
+  userId:"",
+  jobTypes:[],
+  jobLevels:[],
+  experienceLevels:[],
+  country:[],
+  state:[],
+}
+
+export type UsersInfoResponse = typeof usersInfoResponse;
+
+const analizeUserInfoAndGenerateMetaInformation = async (users:IUser&{_id:Types.ObjectId}[]):Promise<typeof usersInfoResponse[]>=>{
+  try {
+
+    
+    console.log('ai is starting the user info analysis');
+    const mappedUserInfo = users.map(user=>({
+      ...user,
+      userId: user._id.toString()
+    }))
+
+const prompt = `
+The following is user profile data:
+users: ${JSON.stringify(mappedUserInfo)}
+
+Task:
+Analyze the provided user data and detect each user's preferences for:
+- jobTypes
+- jobLevels
+- experienceLevels
+- country
+- state
+
+Return the result STRICTLY in the following JSON array format:
+
+[
+  {
+    "userId": "user_id",
+    "jobTypes": ["Software Engineer", "UI/UX Designer", "Nurse"],
+    "jobLevels": ["FULL_TIME", "PART_TIME", "CONTRACT"],
+    "experienceLevels": ["MID_LEVEL", "SENIOR_LEVEL", "EXPERT_LEVEL"],
+    "country": ["USA", "Canada"],
+    "state": ["California", "New York"]
+  }
+]
+
+Rules:
+- Only extract information that explicitly exists in the user data.
+- Do NOT guess or invent any values.
+- If a field is missing for a user, return an empty array for that field.
+- Use standardized enum-like values for jobLevels and experienceLevels when possible.
+- Output ONLY valid JSON.
+- Do NOT include explanations, comments, or extra text.
+`;
+    const result = await chatbot.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You are a job recommendation engine. Return only valid JSON." },
+          { role: "user", content: prompt }
+        ]
+      });
+  
+      const raw = result.choices[0].message.content || "";
+  
+  
+      const clean = raw.replace(/\n/g, "").replace(/```json|```/g, "").trim();
+      const cleanResult = JSON.parse(clean);
+      console.log('ai user info analysis result:', cleanResult);
+      return cleanResult
+    
+    
+  } catch (error) {
+    console.log(error);
+    return [];
+    
+  }
 }
 
 export const AIHelper = {
   askAI,
   getJobMatchPercentances,
   getJobMatchAutoApplyPersentances,
-  analizeResumeHelper
+  analizeResumeHelper,
+  analizeUserInfoAndGenerateMetaInformation
 };

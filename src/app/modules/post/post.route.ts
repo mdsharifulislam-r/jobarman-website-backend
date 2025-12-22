@@ -12,7 +12,7 @@ router.route("/")
     .post(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.createPostZodSchema), PostController.createPost)
 
 router.route("/feed")
-    .get(auth(), PostController.getPostFeed)
+    .get(PostController.getPostFeed)
 
 router.route("/recent-posts")
     .get( PostController.getRecentsPosts)
@@ -27,7 +27,7 @@ router.route("/insights/:id")
 
 router.route("/:id")
     .patch(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.updatePostZodSchema), PostController.updatePost)
-    .delete(auth(USER_ROLES.RECRUITER), PostController.deletePost)
+    .delete(auth(), PostController.deletePost)
     .get(auth(), PostController.getPost)
 
 export const PostRoutes = router;

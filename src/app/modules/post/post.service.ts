@@ -19,6 +19,10 @@ import { sendNotifications } from '../../../helpers/notificationsHelper';
 import { IQuery } from '../../../helpers/thirdPartyQueryBuilder';
 import { mapHelper } from '../../../helpers/mapHelper';
 import { Category } from '../category/category.model';
+import { UsersInfoResponse } from '../../../helpers/aiHelper';
+import { emailTemplate } from '../../../shared/emailTemplate';
+import { emailHelper } from '../../../helpers/emailHelper';
+import { Subscription } from '../subscription/subscription.model';
 
 const createPostIntoDB = async (post: IPost): Promise<IPost> => {
   const result = await Post.create(post);
@@ -499,6 +503,56 @@ const bulkInsertPostIntoDB = async (posts: IPost[]) => {
   return result;
 };
 
+
+const sendEmailForMathchedPosts = async (userInfo:UsersInfoResponse) => {
+
+  // get system jobs useing the userinfo.jobTypes with posts title filter regex match
+  // const systemMatchedPosts = await Post.find({
+  //   title: { $in: userInfo.jobTypes },
+  //   is_deleted: false,
+  //   status: 'active',
+  //   deadline: { $gte: new Date() },
+  // }).lean();
+  
+    const userInfoFromDB = await User.findById(userInfo.userId);
+  if(!userInfoFromDB){
+   return {}
+  }
+
+  const subscription = await Subscription.findOne({user:userInfo.userId,is_active:true});
+  if(!subscription){
+    return {}
+  }
+  
+  const matchedPosts = await jobspikrHelper.getJobs({
+    jobtitles:userInfo.jobTypes,
+    // location:userInfo.locations,
+    // jobTypes:userInfo.jobLevels,
+    location:userInfo.country,
+    state:userInfo.state,
+    limit:20
+  })
+try {
+    await Post.insertMany(matchedPosts.data)
+} catch (error) {
+  console.log(error);
+  
+}
+  console.log('matchedPosts for email:', matchedPosts);
+
+  
+  // send email to user with matched posts
+  const template = emailTemplate.jobMatchEmailTemplate({
+    userName:userInfoFromDB.name!,
+    email:userInfoFromDB.email,
+    jobs: matchedPosts.data as any as IPost[],
+    isPremiumUser:new RegExp(/(PREMIUM|PRO)/).test(subscription.name),
+  })
+
+  await emailHelper.sendEmail(template)
+  await User.findByIdAndUpdate(userInfo.userId,{last_job_update:new Date()})
+}
+
 export const PostServices = {
   createPostIntoDB,
   updatePostToDB,
@@ -509,5 +563,6 @@ export const PostServices = {
   getRecomendedPostsFromDB,
   recentPostsFromDB,
   getSinglePostDetails,
-  bulkInsertPostIntoDB
+  bulkInsertPostIntoDB,
+  sendEmailForMathchedPosts
 };

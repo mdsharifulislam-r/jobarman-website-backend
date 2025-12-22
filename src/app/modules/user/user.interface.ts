@@ -47,6 +47,7 @@ export type IUser = {
   adminaccess?:string[],
   isAutoApply:boolean,
   company_overview?:string,
+  last_job_update?:Date,
 };
 
 export type IEducation = {

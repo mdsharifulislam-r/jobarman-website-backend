@@ -68,12 +68,12 @@ const getDataByRange = async (
   const postIds = posts.map((p) => p._id);
 
   const favourites = await Favourite.find({
-    user: user.id,
+    user: user?.id ,
     post: { $in: postIds },
   }).lean();
 
   const applications = await Application.find({
-    user: user.id,
+    user: user?.id,
     post: { $in: postIds },
   }).lean();
 
@@ -89,7 +89,7 @@ const getDataByRange = async (
   if(data.length < limit) {
     const address = await mapHelper.getCountryAndStateFromLatLong(lat,lng) as any
     query.location = address?.state?address.state:address?.country
-    const apiData = await fullfillDataUsingTheThirdPartyApis(data.length,user.id,limit,query)
+    const apiData = await fullfillDataUsingTheThirdPartyApis(data.length,user?.id,limit,query)
     data.push(...apiData?.data)
     cursor = apiData?.cursor!
   }

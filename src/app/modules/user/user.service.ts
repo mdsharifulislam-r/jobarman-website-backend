@@ -284,7 +284,7 @@ const getUsersListFromTheDB = async (query: Record<string, any>) => {
       console.log("from cache");
       return cache
   }
-  const userQuery = new QueryBuilder(User.find({status: "active",role:{$nin:[USER_ROLES.SUPER_ADMIN,USER_ROLES.ADMIN]}}), query).paginate().sort().search(['name', 'email']).filter(['downloadType'])
+  const userQuery = new QueryBuilder(User.find({role:{$nin:[USER_ROLES.SUPER_ADMIN,USER_ROLES.ADMIN]}}), query).paginate().sort().search(['name', 'email']).filter(['downloadType'])
   const [users, pagination] = await Promise.all([
     userQuery.modelQuery.exec(),
     userQuery.getPaginationInfo()
@@ -304,7 +304,8 @@ const blockUnBlockUser = async (id:string) => {
   if(!user){
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
-  await user.updateOne({status:user.status === "active" ? "delete" : "active"},{new:true});
+  await await User.findByIdAndUpdate(id,{status:user.status == "active" ? "delete" : "active"});
+  await RedisHelper.keyDelete(`users:*`);
   return user;
 }
 

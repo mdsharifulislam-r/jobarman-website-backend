@@ -5,14 +5,37 @@ import { Post } from '../app/modules/post/post.model';
 import { AIHelper } from '../helpers/aiHelper';
 import { User } from '../app/modules/user/user.model';
 import { USER_ROLES } from '../enums/user';
+import { kafkaProducer } from '../tools/kafka/kafka-producers/kafka.producer';
 
 export const startWorker = () => {
-  cron.schedule('* * * * *', () => {
+  cron.schedule('* * * * *',async () => {
     // AutoApply();
+    // getUserInfoAndSendEmailToThem();
     console.log('Cron Job Runned');
     
   });
 };
+
+
+const getUserInfoAndSendEmailToThem = async () => {
+  // only for those user those are get job update more than 1 day ago
+try {
+  const users = await User.find({role:USER_ROLES.EMPLOYEE,verified:true,status:'active',_id:"691d514ce91c5af37776d010"},{designation:1,educations:1,workExperiences:1,skills:1}).sort({createdAt:-1}).limit(1).lean()
+
+  const getAiSuggestion = await AIHelper.analizeUserInfoAndGenerateMetaInformation(users as any);
+
+  for(const userInfo of getAiSuggestion){
+    await kafkaProducer.sendMessage("post",{type:"send-job-match-email",data:userInfo})
+  }
+
+
+}
+catch (error) {
+  console.log(error);
+  
+}
+
+}
 
 async function AutoApply() {
     const users = await User.find({role:USER_ROLES.EMPLOYEE,verified:true,status:'active',isAutoApply:true}).lean()

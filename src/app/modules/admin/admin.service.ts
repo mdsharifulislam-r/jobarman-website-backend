@@ -11,7 +11,7 @@ const createAdminToDB = async (payload: IUser): Promise<IUser> => {
     const createAdmin= await User.create({
         ...payload,
         role: 'ADMIN',
-        verified: true
+        verified: true,
     });
     if (!createAdmin) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create Admin');

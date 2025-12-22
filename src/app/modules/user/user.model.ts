@@ -175,6 +175,9 @@ const userSchema = new Schema<IUser, UserModal>(
     company_overview:{
       type: String
     },
+    last_job_update:{
+      type: Date
+    }
     
     
   },
@@ -236,7 +239,7 @@ const resumeAnalysisSchema = new Schema<IResumeAnalysis, IResumeAnalysisModal>({
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
   },
   filePath: {
     type: String,
