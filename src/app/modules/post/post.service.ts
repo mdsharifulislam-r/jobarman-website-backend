@@ -506,23 +506,55 @@ const bulkInsertPostIntoDB = async (posts: IPost[]) => {
 
 const sendEmailForMathchedPosts = async (userInfo:UsersInfoResponse) => {
 
+  
   // get system jobs useing the userinfo.jobTypes with posts title filter regex match
-  // const systemMatchedPosts = await Post.find({
-  //   title: { $in: userInfo.jobTypes },
-  //   is_deleted: false,
-  //   status: 'active',
-  //   deadline: { $gte: new Date() },
-  // }).lean();
+const buildRegexArray = (arr: string[]) =>
+  arr.map((item) => new RegExp(`^${item}$`, "i"));
+
+const systemMatchedPosts = await Post.find({
+  is_deleted: false,
+  status: "active",
+  deadline: { $gte: new Date() },
+
+  ...(userInfo.jobTypes?.length && {
+    title: { $in: buildRegexArray(userInfo.jobTypes) }
+  }),
+  $or: [
+    ...(userInfo.country?.length ? [{ location: { $in: buildRegexArray(userInfo.country) } }] : []),
+    ...(userInfo.state?.length ? [{ location: { $in: buildRegexArray(userInfo.state) } }] : []),
+  ]
+}).lean().limit(20);
+
+  
   
     const userInfoFromDB = await User.findById(userInfo.userId);
   if(!userInfoFromDB){
    return {}
   }
 
-  const subscription = await Subscription.findOne({user:userInfo.userId,is_active:true});
+  const subscription = await Subscription.findOne({user:userInfo.userId,status:'active'}).sort({createdAt:-1}).lean()
+
+  
   if(!subscription){
     return {}
   }
+
+  if(systemMatchedPosts.length >= 20){
+    // send email to user with matched posts
+    console.log("Sending system matched posts email");
+    const template = emailTemplate.jobMatchEmailTemplate({
+      userName:userInfoFromDB.name!,
+      email:userInfoFromDB.email,
+      jobs: systemMatchedPosts as any as IPost[],
+      isPremiumUser:subscription.name.includes('Platinum')||subscription.name.includes('Gold')|| subscription.name.includes('Premium'),
+    })
+
+    await emailHelper.sendEmail(template)
+    await User.findByIdAndUpdate(userInfo.userId,{last_job_update:new Date()})
+    return
+  }
+  console.log('sending third matched posts email');
+  
   
   const matchedPosts = await jobspikrHelper.getJobs({
     jobtitles:userInfo.jobTypes,
@@ -538,7 +570,7 @@ try {
   console.log(error);
   
 }
-  console.log('matchedPosts for email:', matchedPosts);
+
 
   
   // send email to user with matched posts
@@ -546,7 +578,7 @@ try {
     userName:userInfoFromDB.name!,
     email:userInfoFromDB.email,
     jobs: matchedPosts.data as any as IPost[],
-    isPremiumUser:new RegExp(/(PREMIUM|PRO)/).test(subscription.name),
+    isPremiumUser:subscription.name.includes('Platinum')||subscription.name.includes('Gold')|| subscription.name.includes('Premium'),
   })
 
   await emailHelper.sendEmail(template)

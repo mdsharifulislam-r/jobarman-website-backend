@@ -301,6 +301,7 @@ const autoApplyForJobPosts = async (
         deadline: { $gte: new Date() },
         status: 'active',
         // _id: { $nin: applications.map(app => app.post) }
+        is_third_party_job:{ $ne:true }
       }).populate('recruiter', 'name')
         .lean()
         .exec()

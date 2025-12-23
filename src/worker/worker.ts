@@ -8,9 +8,9 @@ import { USER_ROLES } from '../enums/user';
 import { kafkaProducer } from '../tools/kafka/kafka-producers/kafka.producer';
 
 export const startWorker = () => {
-  cron.schedule('* * * * *',async () => {
-    // AutoApply();
-    // getUserInfoAndSendEmailToThem();
+  cron.schedule('0 0 * * *',async () => {
+    AutoApply();
+    getUserInfoAndSendEmailToThem();
     console.log('Cron Job Runned');
     
   });
@@ -20,8 +20,10 @@ export const startWorker = () => {
 const getUserInfoAndSendEmailToThem = async () => {
   // only for those user those are get job update more than 1 day ago
 try {
-  const users = await User.find({role:USER_ROLES.EMPLOYEE,verified:true,status:'active',_id:"691d514ce91c5af37776d010"},{designation:1,educations:1,workExperiences:1,skills:1}).sort({createdAt:-1}).limit(1).lean()
-
+  const users = await User.find({role:USER_ROLES.EMPLOYEE,verified:true,status:'active',subscription:{$exists:true}},{designation:1,educations:1,workExperiences:1,skills:1}).sort({createdAt:-1}).limit(1).lean()
+  if(users.length===0){
+    return;
+  }
   const getAiSuggestion = await AIHelper.analizeUserInfoAndGenerateMetaInformation(users as any);
 
   for(const userInfo of getAiSuggestion){
