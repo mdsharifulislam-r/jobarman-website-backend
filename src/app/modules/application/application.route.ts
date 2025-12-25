@@ -5,6 +5,7 @@ import { USER_ROLES } from '../../../enums/user';
 import validateRequest from '../../middlewares/validateRequest';
 import { ApplicationValidations } from './application.validation';
 import fileUploadHandler from '../../middlewares/fileUploadHandler';
+import tempAuth from '../../middlewares/tempAuth';
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.route("/auto-apply/:id")
 router.post("/start-interview/:id",auth(USER_ROLES.RECRUITER),ApplicationController.startInterview)
 router.patch("/interview-change-time/:id",auth(USER_ROLES.RECRUITER),validateRequest(ApplicationValidations.changeInterviewDetailsZodSchema),ApplicationController.changeTimedateOfIterview)
 router.delete("/cancel-interview/:id",auth(USER_ROLES.RECRUITER),validateRequest(ApplicationValidations.changeInterviewDetailsZodSchema),ApplicationController.cancelInterview)
-router.get("/recent-applications",ApplicationController.recentApplications)
+router.get("/recent-applications",tempAuth(),ApplicationController.recentApplications)
 router.route("/:id")
     .patch(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(ApplicationValidations.changeStatusSchema),ApplicationController.updateStatusOfApplications)
     .delete(auth(USER_ROLES.RECRUITER, USER_ROLES.EMPLOYEE),ApplicationController.deleteApplication)

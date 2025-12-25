@@ -9,13 +9,13 @@ const createSpotlight = catchAsync(async (req: Request, res: Response) => {
     spotlight.contact_info = JSON.parse(spotlight.contact_info);
     spotlight.cover_image = cover_image!;
     spotlight.user = (req.user as any).id;
-    console.log(spotlight);
+
     
-    await SpotlightServices.createSpotlight(spotlight);
+   const data = await SpotlightServices.createSpotlight(spotlight);
     res.status(200).json({
         success: true,
         message: 'Spotlight created successfully',
-        data: spotlight,
+        data: data,
     });
 });
 

@@ -14,6 +14,22 @@ router.post(
     AdminController.createAdmin
 );
 
+router.route('/spotlight/price')
+.post(
+ 
+    auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+    validateRequest(AdminValidation.createPriceForSpotlightZodSchema),
+    AdminController.createPriceForSpotlight
+).get(
+    auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+    AdminController.getCurrentPriceForSpotlight
+);
+
+router.get(
+    '/company-info',
+    auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+    AdminController.getCompanyInfoForExpiredJobs
+);
 router.get(
     '/',
     auth(USER_ROLES.SUPER_ADMIN),

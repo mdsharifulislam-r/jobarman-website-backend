@@ -10,6 +10,14 @@ const createAdminZodSchema = z.object({
     })
 });
 
+
+const createPriceForSpotlightZodSchema = z.object({
+    body: z.object({
+        price: z.number({ required_error: 'Price is required' }),
+    })
+});
+
 export const AdminValidation = {
     createAdminZodSchema,
+    createPriceForSpotlightZodSchema
 };

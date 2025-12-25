@@ -10,8 +10,13 @@ import { getMultipleFilesPath, getSingleFilePath } from '../../../shared/getFile
 import { Application, AutoApply } from './application.model';
 import { APPLICATION_STATUS } from '../../../enums/application';
 import { IApplication } from './application.interface';
+import { subscriptionHelper } from '../subscription/subscription.helper';
 const createApplication = catchAsync(async (req: Request, res: Response) => {
     const { ...applicationData } = req.body;
+    const exist = await Application.findOne({ user: (req.user as any).id, post: applicationData.post });
+    if (exist) {
+        throw new ApiError(400, 'You have already applied for this post');
+    }
     const resume = getSingleFilePath(req.files, 'resume');
     const other_documents = getMultipleFilesPath(req.files, 'doc');
     applicationData.user = (req.user as any).id;
@@ -131,6 +136,10 @@ const autoApplyFeaturesForUser = catchAsync(async (req: Request, res: Response) 
         filePath: filePath!,
         title,
     });
+   const isPremiumUser = await subscriptionHelper.isPremiumUser((req.user as any).id);
+   if(!isPremiumUser){
+       throw new ApiError(403, 'You are not a premium user!! Please upgrade your subscription to use this feature.');
+   }
     await kafkaProducer.sendMessage("application", {type:"autoApply",data:{user:(req.user as any),percentage,filePath,title,_id:autoApply._id}});
     sendResponse(res, {
         statusCode: StatusCodes.OK,
@@ -153,7 +162,7 @@ const autoApplyResultsForUser = catchAsync(async (req: Request, res: Response) =
 
 
 const recentApplications = catchAsync(async (req: Request, res: Response) => {
-    const result = await ApplicationServices.getRecentApplications(req.query);
+    const result = await ApplicationServices.getRecentApplications(req.query, (req.user as any));
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -218,9 +227,6 @@ const changeTimedateOfIterview = catchAsync(async (req: Request, res: Response) 
     }
 
     await kafkaProducer.sendMessage("application", {type:"changeInterviewDetails",data:{_id:id,data:data}});
-
-
-
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,

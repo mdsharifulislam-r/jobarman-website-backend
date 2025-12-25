@@ -15,6 +15,7 @@ export function buildElasticQuery(params: IQuery) {
   const must: any[] = [];
   const must_not: any[] = [];
   // one month before date 
+  params.location=["United States"];
   const oneMonthBeforeDate = new Date();
   oneMonthBeforeDate.setMonth(oneMonthBeforeDate.getMonth() - 1);
 

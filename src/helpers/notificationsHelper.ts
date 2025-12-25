@@ -7,7 +7,7 @@ import { USER_ROLES } from "../enums/user";
 export const sendNotifications = async (
   data: INotification
 ): Promise<INotification> => {
-  const result = await Notification.create(data);
+  const result = await Notification.create(data)
 
   //@ts-ignore
   const socketIo = global.io;

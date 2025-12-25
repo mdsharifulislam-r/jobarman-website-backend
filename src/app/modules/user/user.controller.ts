@@ -13,6 +13,7 @@ import { SpotlightServices } from '../spotlight/spotlight.service';
 import { PostServices } from '../post/post.service';
 import { SupportServices } from '../support/support.service';
 import { Types } from 'mongoose';
+import { subscriptionHelper } from '../subscription/subscription.helper';
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -46,7 +47,11 @@ const updateProfile = catchAsync(
     const user = (req.user as any);
 
     let image = getSingleFilePath(req.files, 'image');
+    console.log(image);
+    
     const cover = getSingleFilePath(req.files, 'cover');
+    console.log(cover);
+    
     const resume = getSingleFilePath(req.files, 'resume');
 
     const data = {
@@ -338,7 +343,10 @@ const userListDownLoad = catchAsync(async (req: Request, res: Response) => {
 })
 
 const toggleAutoApply = catchAsync(async (req: Request, res: Response) => {
-
+   const isPremiumUser = await subscriptionHelper.isPremiumUser((req.user as any).id);
+   if(!isPremiumUser){
+       throw new ApiError(403, 'You are not a premium user!! Please upgrade your subscription to use this feature.');
+   }
   const result = await UserService.toggleAutoApply(req.user as any);
   sendResponse(res, {
     success: true,

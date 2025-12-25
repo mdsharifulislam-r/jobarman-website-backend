@@ -24,7 +24,8 @@ const spotlightSchema = new Schema<ISpotlight, SpotlightModel>({
     }
   },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true }
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  isPaid: { type: Boolean, default: false }
 },{
   timestamps:true
 });

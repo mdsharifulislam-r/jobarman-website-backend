@@ -55,9 +55,46 @@ const updateAdminInfo = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+
+const createPriceForSpotlight = catchAsync(async (req: Request, res: Response) => {
+    const { price } = req.body;
+    const result = await AdminService.createPriceForSpotlight(price);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Spotlight Price Updated Successfully',
+        data: result
+    });
+});
+
+const getCurrentPriceForSpotlight = catchAsync(async (req: Request, res: Response) => {
+    const result = await AdminService.currentPriceForSpotlight();
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Spotlight Price Fetched Successfully',
+        data: result
+    });
+});
+
+const getCompanyInfoForExpiredJobs = catchAsync(async (req: Request, res: Response) => {
+    const query = req.query;
+    const result = await AdminService.getCompanyInfoForExpiredJobs(query);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Company Info for Expired Jobs Retrieved Successfully',
+        data: result.companies,
+        pagination: result.pagination
+    });
+});
+
 export const AdminController = {
     deleteAdmin,
     createAdmin,
     getAdmin,
-    updateAdminInfo
+    updateAdminInfo,
+    createPriceForSpotlight,
+    getCurrentPriceForSpotlight,
+    getCompanyInfoForExpiredJobs
 };

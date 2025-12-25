@@ -51,6 +51,7 @@ class JobspikrHelper{
                 job_board:job.job_board,
                 unique_id:job.uniq_id,
                 post_date:job.post_date,
+                company_contact_email:job.contact_email,
                 work_mode:job?.inferred_work_mode,
                 ...(job?.inferred_salary_to?{
                     min_salary:job.inferred_salary_from,

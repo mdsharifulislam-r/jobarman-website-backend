@@ -58,6 +58,7 @@ const postSchema = new Schema<IPost, PostModel>({
   cursor: { type: Number, default: 0 },
   salary_recurring: { type: String, required: false },
   work_mode: { type: String, required: false },
+  company_contact_email: { type: String, required: false },
 },{
     timestamps: true
 });

@@ -23,11 +23,12 @@ import { UsersInfoResponse } from '../../../helpers/aiHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { Subscription } from '../subscription/subscription.model';
+import { subscriptionHelper } from '../subscription/subscription.helper';
 
 const createPostIntoDB = async (post: IPost): Promise<IPost> => {
   const result = await Post.create(post);
   await RedisHelper.keyDelete('post_feed:*');
-  await sendNotifications({
+ sendNotifications({
     title:`Your post has been created`,
     message:`Your post has been created successfully`,
     filePath:"post",
@@ -170,6 +171,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     await RedisHelper.redisSet(`post_feed`, {data,pagination}, query);
     return {data,pagination};
   }
+console.log(initalQuery);
 
   const postQuery = new QueryBuilder(Post.find(initalQuery), query)
     .paginate()
@@ -202,6 +204,9 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     ]).exec(),
     postQuery.getPaginationInfo(),
   ]);
+
+  // console.log(posts);
+  
 
 
   const data = {
@@ -506,7 +511,8 @@ const bulkInsertPostIntoDB = async (posts: IPost[]) => {
 
 const sendEmailForMathchedPosts = async (userInfo:UsersInfoResponse) => {
 
-  
+  try {
+    
   // get system jobs useing the userinfo.jobTypes with posts title filter regex match
 const buildRegexArray = (arr: string[]) =>
   arr.map((item) => new RegExp(`^${item}$`, "i"));
@@ -578,11 +584,15 @@ try {
     userName:userInfoFromDB.name!,
     email:userInfoFromDB.email,
     jobs: matchedPosts.data as any as IPost[],
-    isPremiumUser:subscription.name.includes('Platinum')||subscription.name.includes('Gold')|| subscription.name.includes('Premium'),
+    isPremiumUser:await subscriptionHelper.isPremiumUser(userInfo.userId),
   })
 
   await emailHelper.sendEmail(template)
   await User.findByIdAndUpdate(userInfo.userId,{last_job_update:new Date()})
+  } catch (error) {
+    console.log(error);
+    
+  }
 }
 
 export const PostServices = {

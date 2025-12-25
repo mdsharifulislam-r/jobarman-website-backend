@@ -23,9 +23,9 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
       throw new ApiError(400, 'Invalid address');
     }
 
-    await kafkaProducer.sendMessage("post", {type:"create",data:post});
+    // await kafkaProducer.sendMessage("post", {type:"create",data:post});
     
-    
+    await PostServices.createPostIntoDB(post);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,

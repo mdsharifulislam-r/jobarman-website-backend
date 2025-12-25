@@ -12,6 +12,7 @@ import stripe from "../../../config/stripe";
 import { RedisHelper } from "../../../tools/redis/redis.helper";
 import generateOTP from "../../../util/generateOTP";
 import { emailHelper } from "../../../helpers/emailHelper";
+import { emailTemplate } from "../../../shared/emailTemplate";
 
 export interface AppleReceiptResponse {
   status: number;
@@ -205,12 +206,8 @@ const transactionOfSubscription = async (user: JwtPayload,password: string,query
     expireAt: new Date(Date.now() + 3 * 60000),
   };
   await User.findOneAndUpdate({ _id: userExist._id }, { $set: { authentication } });
-
-  emailHelper.sendEmail({
-    to: userExist.email,
-    subject: "Transaction of Subscription",
-    html:`Hello ${userExist.name} your transaction otp is ${otp}`,
-  })
+const emailTemp = emailTemplate.transactionOtpTemplate({userName:userExist.name,otp:otp,email:userExist.email,expiryMinutes:3})
+  emailHelper.sendEmail(emailTemp);
 
   return true
 }

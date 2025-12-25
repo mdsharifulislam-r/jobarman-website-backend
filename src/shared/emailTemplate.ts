@@ -336,8 +336,453 @@ const jobMatchEmailTemplate = (values: {
   };
 };
 
+
+
+const interviewCancelTemplate = (values: {
+  userName: string;
+  email: string;
+  postTitle: string;
+  reseoon: string;
+}) => {
+  const data = {
+    to: values.email,
+    subject: 'JOBARMAN - Interview Cancelled',
+    html:`<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#123499; padding:24px; text-align:center;">
+              <img
+                src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
+                alt="JOBARMAN Logo"
+                style="display:block; margin:0 auto 10px auto; max-height:50px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                Interview Cancellation Notice
+              </h2>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px; color:#333333;">
+              <p style="margin-top:0; font-size:14px;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px;">
+                We regret to inform you that your scheduled interview for the position of
+                <strong>${values.postTitle}</strong> has been cancelled.
+              </p>
+
+              <!-- Info Box -->
+              <div style="margin:24px 0; padding:16px; background:#fff7ed; border:1px solid #fed7aa; border-radius:8px;">
+                <p style="margin:0; font-size:13px; color:#9a3412;">
+                  📌 <strong>Reason:</strong> ${values.reseoon || "Due to unforeseen circumstances."}
+                </p>
+              </div>
+
+              <p style="font-size:13px; color:#555;">
+                We sincerely apologize for any inconvenience this may cause.  
+                If the interview is rescheduled, you will be notified immediately.
+              </p>
+
+              <p style="font-size:13px; color:#555;">
+                You can continue exploring other job opportunities on JOBARMAN that match your profile.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px;">
+                Kind regards,<br />
+                <strong>JOBARMAN Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>`,
+  };
+  return data;
+}
+
+const jobApplicationRejectedTemplate = (values: {
+  userName: string;
+  email: string;
+  postTitle: string;
+  reason?: string;
+}) => {
+  const data = {
+    to: values.email,
+    subject: 'JOBARMAN - Job Application Update',
+    html: `<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#123499; padding:24px; text-align:center;">
+              <img
+                src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
+                alt="JOBARMAN Logo"
+                style="display:block; margin:0 auto 10px auto; max-height:50px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                Job Application Update
+              </h2>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px; color:#333333;">
+              <p style="margin-top:0; font-size:14px;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px;">
+                Thank you for your interest in the position of
+                <strong>${values.postTitle}</strong>.
+              </p>
+
+              <p style="font-size:14px;">
+                After careful consideration, we regret to inform you that your application
+                has not been selected at this time.
+              </p>
+
+              <!-- Info Box -->
+              <div style="margin:24px 0; padding:16px; background:#fff7ed; border:1px solid #fed7aa; border-radius:8px;">
+                <p style="margin:0; font-size:13px; color:#9a3412;">
+                  📌 <strong>Reason:</strong> ${values.reason || "We have decided to move forward with candidates whose experience more closely matches our current needs."}
+                </p>
+              </div>
+
+              <p style="font-size:13px; color:#555;">
+                This decision does not reflect your skills or potential.  
+                We encourage you to continue applying for other opportunities on JOBARMAN.
+              </p>
+
+              <p style="font-size:13px; color:#555;">
+                We appreciate the time and effort you put into your application and wish you every success in your job search.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px;">
+                Best wishes,<br />
+                <strong>JOBARMAN Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>`,
+  };
+
+  return data;
+};
+
+const interviewSelectedTemplate = (values: {
+  userName: string;
+  email: string;
+  postTitle: string;
+  interviewDate: string; // e.g. "25 January 2026"
+  interviewTime: string; // e.g. "10:30 AM (BST)"
+  interviewMode?: string; // Online / Onsite (optional)
+  interviewLink?: string; // meeting link (optional)
+}) => {
+  const data = {
+    to: values.email,
+    subject: 'JOBARMAN - Interview Invitation',
+    html: `<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#123499; padding:24px; text-align:center;">
+              <img
+                src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
+                alt="JOBARMAN Logo"
+                style="display:block; margin:0 auto 10px auto; max-height:50px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                Interview Invitation
+              </h2>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px; color:#333333;">
+              <p style="margin-top:0; font-size:14px;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px;">
+                Congratulations! 🎉  
+                You have been shortlisted for an interview for the position of
+                <strong>${values.postTitle}</strong>.
+              </p>
+
+              <!-- Info Box -->
+              <div style="margin:24px 0; padding:16px; background:#ecfeff; border:1px solid #67e8f9; border-radius:8px;">
+                <p style="margin:6px 0; font-size:13px; color:#0f172a;">
+                  📅 <strong>Date:</strong> ${values.interviewDate}
+                </p>
+                <p style="margin:6px 0; font-size:13px; color:#0f172a;">
+                  ⏰ <strong>Time:</strong> ${values.interviewTime}
+                </p>
+                ${
+                  values.interviewMode
+                    ? `<p style="margin:6px 0; font-size:13px; color:#0f172a;">
+                        💼 <strong>Mode:</strong> ${values.interviewMode}
+                      </p>`
+                    : ''
+                }
+                ${
+                  values.interviewLink
+                    ? `<p style="margin:6px 0; font-size:13px; color:#0f172a;">
+                        🔗 <strong>Meeting Link:</strong>
+                        <a href="${values.interviewLink}" target="_blank">${values.interviewLink}</a>
+                      </p>`
+                    : ''
+                }
+              </div>
+
+              <p style="font-size:13px; color:#555;">
+                Please make sure you are available at the scheduled time.
+                If you have any issues or need to reschedule, kindly contact us as soon as possible.
+              </p>
+
+              <p style="font-size:13px; color:#555;">
+                We wish you the best of luck and look forward to meeting you.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px;">
+                Best regards,<br />
+                <strong>JOBARMAN Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>`,
+  };
+
+  return data;
+};
+
+const shortlistedApplicationTemplate = (values: {
+  userName: string;
+  email: string;
+  postTitle: string;
+  nextStep?: string; // optional custom message
+}) => {
+  const data = {
+    to: values.email,
+    subject: 'JOBARMAN - Application Shortlisted',
+    html: `<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#123499; padding:24px; text-align:center;">
+              <img
+                src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
+                alt="JOBARMAN Logo"
+                style="display:block; margin:0 auto 10px auto; max-height:50px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                Application Shortlisted
+              </h2>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px; color:#333333;">
+              <p style="margin-top:0; font-size:14px;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px;">
+                Great news! 🎉  
+                Your application for the position of
+                <strong>${values.postTitle}</strong> has been shortlisted.
+              </p>
+
+              <p style="font-size:13px; color:#555;">
+                Our hiring team is currently reviewing shortlisted candidates.
+                If you are selected for the next stage, we will contact you with
+                further details regarding the interview process.
+              </p>
+
+              <!-- Info Box -->
+              <div style="margin:24px 0; padding:16px; background:#ecfeff; border:1px solid #67e8f9; border-radius:8px;">
+                <p style="margin:0; font-size:13px; color:#0f172a;">
+                  📌 <strong>Next Step:</strong> ${values.nextStep || "Interview details will be shared soon."}
+                </p>
+              </div>
+
+              <p style="font-size:13px; color:#555;">
+                Thank you for your interest in JOBARMAN and for taking the time to apply.
+                We appreciate your patience during this process.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px;">
+                Best regards,<br />
+                <strong>JOBARMAN Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>`,
+  };
+
+  return data;
+};
+
+
+const transactionOtpTemplate = (values: {
+  userName: string;
+  email: string;
+  otp: number;
+  expiryMinutes?: number;
+}) => {
+  const data = {
+    to: values.email,
+    subject: 'JOBARMAN - Transaction Verification Code',
+    html: `<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#123499; padding:24px; text-align:center;">
+              <img
+                src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
+                alt="JOBARMAN Logo"
+                style="display:block; margin:0 auto 10px auto; max-height:50px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                Transaction Verification
+              </h2>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px; color:#333333; text-align:center;">
+              <p style="margin-top:0; font-size:14px; text-align:left;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px; text-align:left;">
+                To securely access your transaction history, please use the
+                one-time verification code below.
+              </p>
+
+              <!-- OTP Box -->
+              <div style="margin:24px auto; padding:18px; background:#f1f5f9; border-radius:10px; width:fit-content;">
+                <p style="margin:0; font-size:28px; font-weight:bold; letter-spacing:6px; color:#123499;">
+                  ${values.otp}
+                </p>
+              </div>
+
+              <p style="font-size:13px; color:#555; text-align:left;">
+                This code will expire in
+                <strong>${values.expiryMinutes || 5} minutes</strong>.
+              </p>
+
+              <p style="font-size:13px; color:#b91c1c; text-align:left;">
+                ⚠️ Do not share this code with anyone.  
+                JOBARMAN will never ask for your OTP.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px; text-align:left;">
+                Regards,<br />
+                <strong>JOBARMAN Security Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>`,
+  };
+
+  return data;
+};
+
+
+
 export const emailTemplate = {
   createAccount,
   resetPassword,
   jobMatchEmailTemplate,
+  interviewCancelTemplate,
+  jobApplicationRejectedTemplate,
+  interviewSelectedTemplate,
+  shortlistedApplicationTemplate,
+  transactionOtpTemplate
 };

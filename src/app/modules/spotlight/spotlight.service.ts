@@ -5,18 +5,48 @@ import { ISpotlight, SpotlightModel } from './spotlight.interface';
 import { Spotlight } from './spotlight.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { USER_ROLES } from '../../../enums/user';
+import stripe from '../../../config/stripe';
+import { SpotlightPrice } from '../admin/admin.model';
+import ApiError from '../../../errors/ApiError';
+import { User } from '../user/user.model';
 
 const createSpotlight = async (data: ISpotlight) => {
     const spotlight = await Spotlight.create(data);
-    await sendNotificationsAdmin({
-        title: `New Spotlight Added: ${spotlight.organization_name}`,
-        message: `A new spotlight on ${spotlight.focus_area} has been added by ${spotlight.organization_name}. Check it out!`,
-        isRead: false,
-        filePath: "spotlight",
-        referenceId: spotlight._id,
-    })
-    
-    return spotlight;
+    const userInfo = await User.findById(data.user).lean();
+    const letestPrice = await SpotlightPrice.findOne({status:'active'}).sort({_id:-1}).lean();
+    if(!letestPrice){
+        throw new ApiError(400,'Spotlight price not set by admin');
+    }
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+            {
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: `Payment for Spotlight focusing on ${data.focus_area}`,
+                        description: `Without payment, your spotlight will remain in 'pending' status and won't be visible to users.`,
+                    },
+                    unit_amount: letestPrice.price * 100,
+                },
+                quantity: 1,
+            },
+        ],
+        mode: 'payment',
+        success_url: `https://example.com/success`,
+        cancel_url: `https://example.com/cancel`,
+        customer_email: userInfo?.email || undefined,
+        metadata: {
+            spotlightId: spotlight._id.toString(),
+            userId: data.user.toString()
+        }
+
+});
+  if(!session.url){
+    throw new ApiError(400,'Failed to create payment session');
+  }
+
+  return session.url
 }
 
 const updateSpotlight = async (id: string, data: Partial<ISpotlight>) => {
@@ -56,7 +86,7 @@ const approveSpotlight = async (id: string, status: 'approved' | 'rejected') => 
 
 const getSpotlightsFromDB = async (query: Record<string, any>,user:JwtPayload) => {
     if([USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN].includes(user.role)){
-        const spotlightQuery = new QueryBuilder(Spotlight.find(),query).paginate().sort().filter(['downloadType'])
+        const spotlightQuery = new QueryBuilder(Spotlight.find({isPaid:true}),query).paginate().sort().filter(['downloadType'])
 
         const [spotlights,pagination] = await Promise.all([
             spotlightQuery.modelQuery.lean(),
@@ -68,9 +98,9 @@ const getSpotlightsFromDB = async (query: Record<string, any>,user:JwtPayload) =
         }
     }
     if(user.role === USER_ROLES.RECRUITER){
-        const pendingSpotlights = await Spotlight.countDocuments({ status: 'pending', user: user.id });
-        const totalSpotlights = await Spotlight.countDocuments({ user: user.id });
-        const spotlightQuery = new QueryBuilder(Spotlight.find(),query).paginate().sort()
+        const pendingSpotlights = await Spotlight.countDocuments({ status: 'pending', user: user.id, isPaid:true });
+        const totalSpotlights = await Spotlight.countDocuments({ user: user.id, isPaid:true });
+        const spotlightQuery = new QueryBuilder(Spotlight.find({user:user.id,isPaid:true}),query).paginate().sort()
 
         const [spotlights,pagination] = await Promise.all([
             spotlightQuery.modelQuery.lean(),
@@ -86,7 +116,7 @@ const getSpotlightsFromDB = async (query: Record<string, any>,user:JwtPayload) =
         }
     }
     if(user.role == USER_ROLES.EMPLOYEE){
-        const spotlightQuery = new QueryBuilder(Spotlight.find({status:'approved'}),query).paginate().sort()
+        const spotlightQuery = new QueryBuilder(Spotlight.find({status:'approved',isPaid:true}),query).paginate().sort()
 
         const [spotlights,pagination] = await Promise.all([
             spotlightQuery.modelQuery.lean(),

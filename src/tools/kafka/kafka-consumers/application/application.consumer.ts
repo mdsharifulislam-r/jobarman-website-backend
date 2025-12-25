@@ -51,7 +51,7 @@ export const applicationConsumer = async () => {
                 await ApplicationServices.changeIterviewDetailsOfApplication(data.data._id,data.data.data);
                 break;
             case "cancelInterview":
-                await ApplicationServices.cancelInterviewOfApplication(data.data._id,data.data);
+                await ApplicationServices.cancelInterviewOfApplication(data.data._id,data.data?.reason);
                 break;
             default:
                 console.log("Invalid type");

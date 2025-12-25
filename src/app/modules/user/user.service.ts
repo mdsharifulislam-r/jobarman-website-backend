@@ -317,7 +317,7 @@ const toggleAutoApply = async (jwtUser:JwtPayload) => {
   }
   await user.updateOne({isAutoApply:!user.isAutoApply},{new:true});
   return {
-    isAutoApply:user.isAutoApply
+    isAutoApply:!user.isAutoApply
   };
 }
 

@@ -6,11 +6,17 @@ import { AIHelper } from '../helpers/aiHelper';
 import { User } from '../app/modules/user/user.model';
 import { USER_ROLES } from '../enums/user';
 import { kafkaProducer } from '../tools/kafka/kafka-producers/kafka.producer';
+import { ICompanyInfo } from '../app/modules/admin/admin.interface';
+import { CompanyInfo } from '../app/modules/admin/admin.model';
+import { Subscription } from '../app/modules/subscription/subscription.model';
+import { sendNotifications } from '../helpers/notificationsHelper';
 
 export const startWorker = () => {
-  cron.schedule('0 0 * * *',async () => {
-    AutoApply();
-    getUserInfoAndSendEmailToThem();
+  cron.schedule('* * * * *',async () => {
+    // AutoApply();
+    // getUserInfoAndSendEmailToThem();
+    // await deleteExpireJobsPosts();
+    // await suspendExpiredSubscriptions();
     console.log('Cron Job Runned');
     
   });
@@ -81,12 +87,70 @@ export const matchAndApplyPost = async (user: IUser & { _id: string }) => {
           jobMatch: postId.jobMatch,
           isAutoApplied: true,
           resume: user.resume,
-          year_of_experience: `2 years`,
+          year_of_experience: `2`,
         });
       })
     );
 
     console.log(`Auto Applyed ${aiSuggesstionPost.length} post`);
+  } catch (error) {
+    console.log(error);
+  }
+
+};
+
+
+const deleteExpireJobsPosts = async () => {
+  //post date less than 30 days or deadline passed
+ try {
+   const expireJobs = await Post.find({ $or: [{ deadline: { $lt: new Date() } }, {post_date:{$lt:new Date(new Date().setDate(new Date().getDate() - 30))}}],is_third_party_job:true }).lean();
+  const arr:ICompanyInfo[] = [];
+  await Promise.all(expireJobs.map(async (job) => {
+
+    if(true){
+      const isExist = await CompanyInfo.findOne({company_name:job.recruiter_company,contact_email:job.company_contact_email});
+      if(isExist){
+        return;
+      }
+      arr.push({
+        contact_email:job.company_contact_email! || '',
+        company_name:job.recruiter_company||'',
+        job_url:job.job_url||'',
+        company_logo:job.thumbnail||'',
+        company_address:job.location||'',
+      });
+    }
+
+    // await Post.deleteOne({ _id: job._id });
+    
+  }));
+
+  if(arr.length>0){
+    await CompanyInfo.insertMany(arr);
+  }
+  console.log(`Deleted ${expireJobs.length} expired jobs`);
+ } catch (error) {
+  console.log(error);
+  
+ }
+}
+
+const suspendExpiredSubscriptions = async () => {
+  try {
+    const subscriptions = await Subscription.find({ status: 'active', end_date: { $lt: new Date() } }).lean();
+    await Promise.all(subscriptions.map(async (subscription) => {
+      await Subscription.updateOne({ _id: subscription._id }, { status: 'expired' });
+      await User.updateOne({ _id: subscription.user }, { $pull: { subscription: subscription._id } });
+      await sendNotifications({
+        title: `Your subscription has been expired!`,
+        message: `Please renew your subscription to continue using our platform.`,
+        receiver: [subscription.user],
+        isRead: false,
+        filePath: "subscription",
+        referenceId: subscription._id,
+      })
+    }));
+    console.log(`Suspended ${subscriptions.length} expired subscriptions`);
   } catch (error) {
     console.log(error);
   }

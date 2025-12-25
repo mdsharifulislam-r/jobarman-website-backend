@@ -37,7 +37,8 @@ export type IPost = {
   prevImage?:string,
   unique_id?:string,
   cursor?:number,
-  work_mode?:string
+  work_mode?:string,
+  company_contact_email?:string
   
 };
 

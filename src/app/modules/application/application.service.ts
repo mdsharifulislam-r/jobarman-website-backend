@@ -21,9 +21,28 @@ import { Chat } from '../chat/chat.model';
 import { ChatService } from '../chat/chat.service';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { sendNotifications } from '../../../helpers/notificationsHelper';
+import { emailTemplate } from '../../../shared/emailTemplate';
 
 const createApplicationIntoDB = async (data: IApplication) => {
-  const application = await Application.create(data);
+  const application = (await Application.create(data)).populate([
+    'post',
+    'user',]);
+  sendNotifications({
+    title: `New application for ${(data.post as any)?.title} has been submitted!`,
+    message: `${(data.user as any)?.name} has submitted an application for ${(data.post as any)?.title}`,
+    isRead: false,
+    filePath: 'application',
+    receiver: [data.recruiter],
+    referenceId: (application as any)._id,
+  })
+  sendNotifications({
+    title: `Your application for ${(data.post as any)?.title} has been submitted!`,
+    message: `Your application for ${(data.post as any)?.title} has been submitted!`,
+    isRead: false,
+    filePath: 'application',
+    receiver: [data.user],
+    referenceId: (application as any)._id,
+  })
   await RedisHelper.keyDelete(`applications:${data.recruiter}:*`);
   return application;
 };
@@ -49,6 +68,29 @@ const updateApplicationStatusToDB = async (
       },
       { new: true }
     );
+
+    await RedisHelper.keyDelete(`applications:${application?.recruiter}:*`);
+
+    const user = await User.findById(application?.user);
+    const recruiter = await User.findById(application?.recruiter);
+    const post = await Post.findById(application?.post);
+    const data: INotification = {
+      title: 'Application shortlisted',
+      message: `Your application for ${post?.title} has been shortlisted by ${recruiter?.name}`,
+      filePath: 'application',
+      referenceId: id as any,
+      isRead: false,
+      receiver: [user?.id],
+    };
+    sendNotifications(data);
+    const emailTemplatek = emailTemplate.shortlistedApplicationTemplate({
+      userName: user?.name!,
+      postTitle: post?.title!,
+      email: user?.email!,
+    })
+    await emailHelper.sendEmail(emailTemplatek)
+
+    return
   }
 
   if (status == APPLICATION_STATUS.REJECTED) {
@@ -67,6 +109,27 @@ const updateApplicationStatusToDB = async (
       },
       { new: true }
     );
+    await RedisHelper.keyDelete(`applications:${application?.recruiter}:*`);
+    const user = await User.findById(application?.user);
+    const recruiter = await User.findById(application?.recruiter);
+    const post = await Post.findById(application?.post);
+    const datak: INotification = {
+      title: 'Application rejected',
+      message: `Your application for ${post?.title} has been rejected by ${recruiter?.name}`,
+      filePath: 'application',
+      referenceId: id as any,
+      isRead: false,
+      receiver: [user?.id],
+    };
+sendNotifications(datak);
+    const emailTemplatek = emailTemplate.jobApplicationRejectedTemplate({
+      userName: user?.name!,
+      postTitle: post?.title!,
+      reason: body.rejectedReason,
+      email: user?.email!,
+    })
+    await emailHelper.sendEmail(emailTemplatek)
+    return
   }
 
   if (status === APPLICATION_STATUS.INTERVIEW) {
@@ -86,6 +149,7 @@ const updateApplicationStatusToDB = async (
       },
       { new: true }
     );
+    await RedisHelper.keyDelete(`applications:${application?.recruiter}:*`);
     // await Interview.create({
     //     application:data?._id,
     //     date:body?.interviewDetails?.date,
@@ -107,7 +171,32 @@ const updateApplicationStatusToDB = async (
       filePath: 'application',
       referenceId: data?._id,
     } as INotification);
+    const user = await User.findById(data?.user);
+    const recruiter = await User.findById(data?.recruiter);
+    const post = await Post.findById(data?.post);
+    const datak: INotification = {
+      title: 'Application sent for interview',
+      message: `Your application for ${post?.title} has been sent for interview by ${recruiter?.name}`,
+      filePath: 'application',
+      referenceId: id as any,
+      isRead: false,
+      receiver: [user?.id],
+    };
+    sendNotifications(datak);
+    const emailTemplatek = emailTemplate.interviewSelectedTemplate({
+      userName: user?.name!,
+      postTitle: post?.title!,
+      email: user?.email!,
+      interviewDate: new Date(data?.interviewDetails?.date!).toLocaleDateString(),
+      interviewTime: data?.interviewDetails?.time!,
+      interviewMode: data?.interviewDetails?.interview_type!,
+    })
+    await emailHelper.sendEmail(emailTemplatek)
+ 
+    return
   }
+
+
 
   await RedisHelper.keyDelete(`applications:${application?.recruiter}:*`);
 
@@ -296,11 +385,11 @@ const autoApplyForJobPosts = async (
     const applications = await Application.find({ user: user.id }).lean();
     const similerpost = (
       await Post.find({
-        // title:{ $regex: new RegExp(title, 'i') },
-        // required_skills: { $in: skills },
+        title:{ $regex: new RegExp(title, 'i') },
+        required_skills: { $in: skills },
         deadline: { $gte: new Date() },
         status: 'active',
-        // _id: { $nin: applications.map(app => app.post) }
+        _id: { $nin: applications.map(app => app.post) },
         is_third_party_job:{ $ne:true }
       }).populate('recruiter', 'name')
         .lean()
@@ -370,9 +459,18 @@ const getAutoApplyResults = async (id: string) => {
   return data;
 };
 
-const getRecentApplications = async (query: Record<string, any>) => {
+const getRecentApplications = async (query: Record<string, any>, user: JwtPayload) => {
+  let initalQuery: Record<string, any> = {}
+  if(user?.role === USER_ROLES.RECRUITER){
+    initalQuery = {recruiter:user.id}
+  }
+
+  if(query?.match){
+    const [a,b] = query.match.split('-').map(Number);
+    initalQuery.jobMatch = { $gte: a || 0, $lte: b || 100 }
+  }
   const data = new QueryBuilder(
-    Application.find({}, { user: 1, jobMatch: 1, year_of_experience: 1,post:1 }),
+    Application.find(initalQuery, { user: 1, jobMatch: 1, year_of_experience: 1,post:1 }),
     query
   )
     .sort()
@@ -527,11 +625,13 @@ const cancelInterviewOfApplication = async (applicationId: string,reson:string) 
     isRead:false,
     receiver:[application.user]
   })
-  await emailHelper.sendEmail({
-    to: candidate?.email!,
-    subject: `Interview Cancelled for ${(application.post as any)?.title}`,
-    html:`Your interview of ${(application.post as any)?.title} has been cancelled.<br><br>Best regards,<br>${candidate?.name}`,
+  const template = emailTemplate.interviewCancelTemplate({
+    userName:candidate?.name!,
+    postTitle:(application.post as any)?.title,
+    reseoon:reson,
+    email:candidate?.email!
   })
+  await emailHelper.sendEmail(template)
 
   return
 }
