@@ -64,9 +64,9 @@ const getUserProfileFromDB = async (
   delete isExistUser.password;
   if(isExistUser.role == USER_ROLES.RECRUITER){
     const activePosts = await Post.countDocuments({recruiter:isExistUser._id,status:"active"});
-    const pendingRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.PENDING});
-    const shortlistRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.SHORTLISTED});
-    const interviewRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.INTERVIEW});
+    const pendingRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.PENDING,reqruiter_deleted:false});
+    const shortlistRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.SHORTLISTED,reqruiter_deleted:false});
+    const interviewRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.INTERVIEW,reqruiter_deleted:false});
     return {
       ...isExistUser.toJSON(),
       subscription: subscription?._id? subscription.name: "No Subscription",

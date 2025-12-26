@@ -15,7 +15,7 @@ const createApplicationZodSchema = z.object({
     title: z.string().min(1, { message: 'Title must be at least 2 characters' }),
     year_of_experience: z.string().min(1, { message: 'Year of experience must be at least 2 characters' }),
     resume: z.any(),
-    doc: z.array(z.any()).optional(),
+    doc: z.any(),
   }),
 })
 

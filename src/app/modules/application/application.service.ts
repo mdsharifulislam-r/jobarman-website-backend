@@ -24,20 +24,24 @@ import { sendNotifications } from '../../../helpers/notificationsHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
 
 const createApplicationIntoDB = async (data: IApplication) => {
-  const application = (await Application.create(data)).populate([
+  const applicationk = (await Application.create(data))
+
+  const application = await Application.findById(applicationk._id).populate([
     'post',
-    'user',]);
+    'user',
+  ]);
+  
   sendNotifications({
-    title: `New application for ${(data.post as any)?.title} has been submitted!`,
-    message: `${(data.user as any)?.name} has submitted an application for ${(data.post as any)?.title}`,
+    title: `New application for ${((application as any).post as any)?.title} has been submitted!`,
+    message: `${((application as any).user as any)?.name} has submitted an application for ${((application as any).post as any)?.title}`,
     isRead: false,
     filePath: 'application',
     receiver: [data.recruiter],
     referenceId: (application as any)._id,
   })
   sendNotifications({
-    title: `Your application for ${(data.post as any)?.title} has been submitted!`,
-    message: `Your application for ${(data.post as any)?.title} has been submitted!`,
+    title: `Your application for ${(  (application as any).post as any)?.title} has been submitted!`,
+    message: `Your application for ${((application as any).post as any)?.title} has been submitted!`,
     isRead: false,
     filePath: 'application',
     receiver: [data.user],

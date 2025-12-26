@@ -42,7 +42,11 @@ const updatePost = catchAsync(async (req: Request, res: Response) => {
     post.thumbnail = image!;
     console.log(post);
     
-    await kafkaProducer.sendMessage("post", {type:"update",data:post});
+    // await kafkaProducer.sendMessage("post", {type:"update",data:post});
+    const postUpdated = await PostServices.updatePostToDB(id, post);
+    if(!postUpdated){
+        throw new ApiError(404, 'Post not found');
+    }
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,

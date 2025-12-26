@@ -14,25 +14,10 @@ export const applicationConsumer = async () => {
             case "create":
                const application = await ApplicationServices.createApplicationIntoDB(data.data);
 
-               const user = await User.findOne({ _id: application.user })?.lean()
-               await sendNotifications({
-                title:`Your application for ${application.title} has been submitted!`,
-                message:`Your application for ${application.title} has been submitted!`,
-                isRead:false,
-                filePath:"application",
-                receiver:[application.user],
-                referenceId:application._id
-               })
-               await sendNotifications({
-                   title:`New application for ${application.title} has been submitted!`,
-                   message:`${user?.name}  has submitted an application for ${application.title}`,
-                   isRead:false,
-                   filePath:"application",
-                   receiver:[application.post as any],
-                   referenceId:application._id
-               })
-                const percentage = await AIHelper.getJobMatchPercentances(application.user as any,application.post as any);
-               await Application.findOneAndUpdate({ _id: application._id }, { jobMatch: percentage.matchPercentage }, { new: true });
+               const user = await User.findOne({ _id: application?.user?._id })?.lean()
+    
+                const percentage = await AIHelper.getJobMatchPercentances(application?.user?._id as any,application?.post?._id as any);
+               await Application.findOneAndUpdate({ _id: application?._id }, { jobMatch: percentage.matchPercentage }, { new: true });
                 break;
             case "update":
               await ApplicationServices.updateApplicationStatusToDB(data.data._id, data.data.status,data.data);

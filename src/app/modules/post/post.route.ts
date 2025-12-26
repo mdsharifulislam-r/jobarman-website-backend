@@ -28,6 +28,6 @@ router.route("/insights/:id")
 router.route("/:id")
     .patch(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.updatePostZodSchema), PostController.updatePost)
     .delete(auth(), PostController.deletePost)
-    .get(auth(), PostController.getPost)
+    .get( PostController.getPost)
 
 export const PostRoutes = router;
