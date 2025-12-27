@@ -85,19 +85,24 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     subscription:{
       type:Schema.Types.ObjectId,
-      ref:'Subscription'
+      ref:'Subscription',
+      default:null
     },
     bio: {
       type: String,
+      default: '',
     },
     cover: {
       type: String,
+      default: '/cover.png',
     },
     about_us: {
       type: String,
+      default: '',
     },
     mission: {
       type: String,
+      default: '',
     },
     overview: {
       type: {
@@ -114,6 +119,7 @@ const userSchema = new Schema<IUser, UserModal>(
           type: String,
         },
       },
+      default: {},
      
     },
     contactInfo:{
@@ -130,53 +136,67 @@ const userSchema = new Schema<IUser, UserModal>(
         email: {
           type: String,
         },
-      }
+      },
+      default:{}
     },
     educations:[educationSchema],
     workExperiences:[workExperienceSchema],
     address: {
       type: String,
+      default: '',
     },
     phone: {
       type: String,
+      default: '',
     },
     date_of_birth: {
       type: Date,
+      default: null,
     },
     gender: {
       type: String,
+      default: '',
     },
     nationality: {
       type: String,
+      default: '',
     },
     language: {
       type: String,
+      default: '',
     },
     linkedin: {
       type: String,
+      default: '',
     },
     designation : {
       type: String,
+      default: '',
     },
     skills: {
       type: [String],
+      default: [],
     },
 
     resume:{
-      type: String
+      type: String,
+      default: '',
     },
     adminaccess:{
-      type:[String]
+      type:[String],
+      default:[]
     },
     isAutoApply: {
       type: Boolean,
       default: false,
     },
     company_overview:{
-      type: String
+      type: String,
+      default: '',
     },
     last_job_update:{
-      type: Date
+      type: Date,
+      default: null 
     }
     
     

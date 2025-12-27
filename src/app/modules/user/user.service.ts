@@ -63,7 +63,7 @@ const getUserProfileFromDB = async (
   const subscription = await Subscription.findOne({ user: id, status: "active" })
   delete isExistUser.password;
   if(isExistUser.role == USER_ROLES.RECRUITER){
-    const activePosts = await Post.countDocuments({recruiter:isExistUser._id,status:"active"});
+    const activePosts = await Post.countDocuments({recruiter:isExistUser._id,status:"active",recruiter_deleted:{$ne:true}});
     const pendingRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.PENDING,reqruiter_deleted:false});
     const shortlistRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.SHORTLISTED,reqruiter_deleted:false});
     const interviewRequest = await Application.countDocuments({recruiter:isExistUser._id,status:APPLICATION_STATUS.INTERVIEW,reqruiter_deleted:false});

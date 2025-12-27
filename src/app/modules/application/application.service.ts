@@ -368,7 +368,35 @@ const feedBackOfInterview = async (
     },
     { new: true }
   );
-  await RedisHelper.keyDelete(`applications:${result?.recruiter}:*`);
+await RedisHelper.keyDelete(`applications:${result?.recruiter}:*`);
+  if(body.hiringStatus=="hired"){
+    const user = await User.findById(result?.user);
+    const post = await Post.findById(result?.post).populate('recruiter');
+    
+    const template = emailTemplate.congratulationsHiredTemplate({
+      userName:user?.name!,
+      companyName:(post?.recruiter as any)?.name!,
+      email:user?.email!,
+      position:(post as any)?.title!,
+    })
+
+    await emailHelper.sendEmail(template)
+  }
+
+  if(body.hiringStatus=="rejected"){
+    const user = await User.findById(result?.user);
+    const post = await Post.findById(result?.post).populate('recruiter');
+    
+    const template = emailTemplate.jobApplicationRejectedTemplate({
+      userName:user?.name!,
+      email:user?.email!,
+      postTitle:(post as any)?.title!,
+      reason:body.feedback
+    })
+
+    await emailHelper.sendEmail(template)
+  }
+  
   return true;
 };
 
@@ -546,7 +574,7 @@ const singleApplicationDetails = async (id: string) => {
 
 
 const startExtarnerNalInterviewOfApplication = async (applicationId: string) => {
-  const application = await Application.findById(applicationId);
+  const application = await Application.findById(applicationId).populate('post');
   if (!application) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Application not found!');
   }
@@ -572,11 +600,16 @@ const startExtarnerNalInterviewOfApplication = async (applicationId: string) => 
 
   }})
 
-  emailHelper.sendEmail({
-    to: candidate.email,
-    subject: `Interview Scheduled for ${candidate.name}`,
-    html: `Hello ${candidate.name},<br><br>You have been scheduled an interview for ${candidate.name}.<br><br>Please find the Zoom link below:<br>${zoomURl}<br><br>Best regards,<br>${recruiter.name}`,
+  const template = emailTemplate.zoomMeetingInviteTemplate({
+    userName:candidate?.name!,
+    email:candidate?.email!,
+    meetingDate:new Date(application?.interviewDetails?.date!).toDateString(),
+    meetingTime:application?.interviewDetails?.time!,
+    meetingLink:zoomURl,
+    meetingTitle:`${(application?.post as any)?.title}'s Interview`
   })
+
+  emailHelper.sendEmail(template)
 
   return zoomURl
 }

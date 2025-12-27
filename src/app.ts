@@ -53,6 +53,7 @@ app.use(express.urlencoded({ extended: true }));
 
 //file retrieve
 app.use(express.static('uploads'));
+app.use(express.static('assets'));
 
 //router
 app.use('/api/v1', router);

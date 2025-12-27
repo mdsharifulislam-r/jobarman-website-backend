@@ -313,7 +313,7 @@ const getPostInsigtsFromDB = async (postId: string, days: number = 30) => {
   });
   const hiredCount = await Application.countDocuments({
     post: postId,
-    hiringStatus: 'hired',
+    status: [APPLICATION_STATUS.SHORTLISTED, APPLICATION_STATUS.INTERVIEW],
     createdAt: { $gte: date },
   });
   const rejectedCount = await Application.countDocuments({

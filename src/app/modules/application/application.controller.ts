@@ -18,6 +18,9 @@ const createApplication = catchAsync(async (req: Request, res: Response) => {
         throw new ApiError(400, 'You have already applied for this post');
     }
     const resume = getSingleFilePath(req.files, 'resume');
+    if(!resume){
+        throw new ApiError(400, 'Resume is required');
+    }
     const other_documents = getMultipleFilesPath(req.files, 'doc');
     applicationData.user = (req.user as any).id;
     const post = await Post.findById(applicationData.post);
@@ -116,6 +119,7 @@ const deleteApplication = catchAsync(async (req: Request, res: Response) => {
 
 const sendFeedBackofInterview = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
+    const application = await Application.findById(id);
     const body= req.body;
     await kafkaProducer.sendMessage("application", {type:"feedback",data:{_id:id,...body}});
     sendResponse(res, {

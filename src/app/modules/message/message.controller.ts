@@ -36,7 +36,7 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
 
 const getMessage = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
-  console.log(id);
+
   
   const query = req.query;
   const user = (req.user as any);

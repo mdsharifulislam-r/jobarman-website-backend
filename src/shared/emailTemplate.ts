@@ -774,6 +774,271 @@ const transactionOtpTemplate = (values: {
   return data;
 };
 
+export const zoomMeetingInviteTemplate = (values: {
+  userName: string;
+  email: string;
+  meetingTitle: string;
+  meetingDate: string; // e.g. "25 Dec 2025"
+  meetingTime: string; // e.g. "7:00 PM (BST)"
+  meetingLink: string;
+}) => {
+  return {
+    to: values.email,
+    subject: 'JOBARMAN - Zoom Meeting Invitation',
+    html: `
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#123499; padding:24px; text-align:center;">
+              <img
+                src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
+                alt="JOBARMAN Logo"
+                style="display:block; margin:0 auto 10px auto; max-height:50px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                Zoom Meeting Invitation
+              </h2>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px; color:#333333;">
+              <p style="font-size:14px;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px;">
+                You have been invited to attend a Zoom meeting via JOBARMAN.
+                Please find the meeting details below.
+              </p>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0; background:#f1f5f9; border-radius:10px; padding:16px;">
+                <tr>
+                  <td style="font-size:14px;">
+                    <strong>Meeting:</strong> ${values.meetingTitle}<br />
+                    <strong>Date:</strong> ${values.meetingDate}<br />
+                    <strong>Time:</strong> ${values.meetingTime}
+                  </td>
+                </tr>
+              </table>
+
+              <div style="text-align:center; margin:24px 0;">
+                <a
+                  href="${values.meetingLink}"
+                  target="_blank"
+                  style="background:#123499; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:6px; font-size:14px; display:inline-block;"
+                >
+                  Join Zoom Meeting
+                </a>
+              </div>
+
+              <p style="font-size:13px; color:#555;">
+                Please make sure to join the meeting on time.
+                If you have any issues, feel free to contact us.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px;">
+                Regards,<br />
+                <strong>JOBARMAN Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+    `,
+  };
+};
+
+export const congratulationsHiredTemplate = (values: {
+  userName: string;
+  email: string;
+  position: string;
+  companyName: string;
+  startDate?: string;
+}) => {
+  return {
+    to: values.email,
+    subject: 'JOBARMAN - Congratulations! You’re Hired 🎉',
+    html: `
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#16a34a; padding:24px; text-align:center;">
+              <img
+                src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
+                alt="JOBARMAN Logo"
+                style="display:block; margin:0 auto 10px auto; max-height:50px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                Congratulations 🎉
+              </h2>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px; color:#333333;">
+              <p style="font-size:14px;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px;">
+                We are excited to inform you that you have been successfully
+                hired for the position of
+                <strong>${values.position}</strong> at
+                <strong>${values.companyName}</strong>.
+              </p>
+
+              <div style="margin:20px 0; padding:16px; background:#ecfdf5; border-left:4px solid #16a34a; border-radius:6px;">
+                <p style="margin:0; font-size:14px;">
+                  Welcome aboard! Your skills and experience impressed the team,
+                  and we’re confident you’ll do great.
+                </p>
+              </div>
+
+              ${
+                values.startDate
+                  ? `<p style="font-size:14px;">
+                      <strong>Start Date:</strong> ${values.startDate}
+                    </p>`
+                  : ''
+              }
+
+              <p style="font-size:14px;">
+                The employer or our team will contact you soon with next steps
+                and onboarding details.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px;">
+                Best wishes,<br />
+                <strong>JOBARMAN Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+    `,
+  };
+};
+
+export const applicationRejectedTemplate = (values: {
+  userName: string;
+  email: string;
+  position: string;
+  companyName: string;
+}) => {
+  return {
+    to: values.email,
+    subject: 'JOBARMAN - Application Update',
+    html: `
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 15px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#6b7280; padding:24px; text-align:center;">
+              <img
+                src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
+                alt="JOBARMAN Logo"
+                style="display:block; margin:0 auto 10px auto; max-height:50px;"
+              />
+              <h2 style="margin:0; color:#ffffff; font-size:20px;">
+                Application Status Update
+              </h2>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px; color:#333333;">
+              <p style="font-size:14px;">
+                Hi ${values.userName},
+              </p>
+
+              <p style="font-size:14px;">
+                Thank you for taking the time to apply for the
+                <strong>${values.position}</strong> position at
+                <strong>${values.companyName}</strong>.
+              </p>
+
+              <p style="font-size:14px;">
+                After careful consideration, we regret to inform you that we will
+                not be moving forward with your application at this time.
+              </p>
+
+              <div style="margin:20px 0; padding:16px; background:#f9fafb; border-left:4px solid #6b7280; border-radius:6px;">
+                <p style="margin:0; font-size:14px; color:#555;">
+                  This decision does not reflect a lack of ability or potential.
+                  We encourage you to continue applying for other opportunities
+                  that match your skills and interests.
+                </p>
+              </div>
+
+              <p style="font-size:14px;">
+                We truly appreciate your interest in
+                <strong>${values.companyName}</strong> and wish you every success
+                in your job search.
+              </p>
+
+              <p style="margin-bottom:0; font-size:14px;">
+                Kind regards,<br />
+                <strong>JOBARMAN Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+    `,
+  };
+};
+
 
 
 export const emailTemplate = {
@@ -784,5 +1049,8 @@ export const emailTemplate = {
   jobApplicationRejectedTemplate,
   interviewSelectedTemplate,
   shortlistedApplicationTemplate,
-  transactionOtpTemplate
+  transactionOtpTemplate,
+  applicationRejectedTemplate,
+  zoomMeetingInviteTemplate,
+  congratulationsHiredTemplate
 };
