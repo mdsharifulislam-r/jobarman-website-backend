@@ -28,9 +28,16 @@ services:
       - xpack.security.enabled=false
     volumes:
       - esdata:/usr/share/elasticsearch/data
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redisdata:/data
 
 
 
 
 volumes:
   esdata:
+  redisdata:
