@@ -273,13 +273,13 @@ const getPostsFromDB = async (query: Record<string, any>, user: JwtPayload) => {
   ]);
 
   return {
-    data:user.role ==USER_ROLES.RECRUITER? query.shortForm=='true'? posts.map((post) => ({name:post.title,_id:post._id})):await Promise.all(
-        posts.map(async (post) => {
+    data:user.role ==USER_ROLES.RECRUITER? query.shortForm=='true'? posts?.map((post) => ({name:post.title,_id:post._id})):await Promise.all(
+        posts?.map(async (post) => {
         const applications = await Application.find({
           post: post._id,
         }).populate('user').sort('-createdAt').limit(4);
         
-        const userImages = applications.map((application: any) => {
+        const userImages = applications?.map((application: any) => {
           return application.user.image;
         });
 
