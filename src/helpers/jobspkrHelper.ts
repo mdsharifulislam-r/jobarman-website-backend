@@ -33,6 +33,7 @@ class JobspikrHelper{
     }
 
     convertJobsPickrToLocal(data:JobspikrResponse["job_data"],category?:string){
+        if(!data || data.length==0) return [];
         const mappedData = data.map((job) =>{
             const data ={
                 title:job.job_title,
