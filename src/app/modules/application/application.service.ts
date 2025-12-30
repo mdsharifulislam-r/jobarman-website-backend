@@ -22,6 +22,7 @@ import { ChatService } from '../chat/chat.service';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { sendNotifications } from '../../../helpers/notificationsHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
+import { subscriptionHelper } from '../subscription/subscription.helper';
 
 const createApplicationIntoDB = async (data: IApplication) => {
   const applicationk = (await Application.create(data))
@@ -410,7 +411,7 @@ const autoApplyForJobPosts = async (
   try {
   // time delay
     // await new Promise((resolve) => setTimeout(resolve, 3000));
-
+     const subscriptionBasedLimit = await subscriptionHelper.isPremiumUser(user.id,"bronze")?10:(await subscriptionHelper.isPremiumUser(user.id,"gold") || await subscriptionHelper.isPremiumUser(user.id,"silver"))?1000000:0
     const aiFile = await openAiFileUpload(cvPath);
     const userProfile = await User.findById(user.id);
     const skills = userProfile?.skills || [];
@@ -424,6 +425,7 @@ const autoApplyForJobPosts = async (
         _id: { $nin: applications.map(app => app.post) },
         is_third_party_job:{ $ne:true }
       }).populate('recruiter', 'name')
+        .limit(subscriptionBasedLimit)
         .lean()
         .exec()
     ).map(post => ({

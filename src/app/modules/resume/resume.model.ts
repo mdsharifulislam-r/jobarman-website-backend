@@ -64,6 +64,9 @@ const resumeSchema = new Schema<IResume, ResumeModel>({
       link: { type: String, required: false },
     }]
   },
-});
+  is_external_resume: { type: Boolean, required: false,default:false },
+  pdf: { type: String, required: false },
+},
+{ timestamps: true });
 
 export const Resume = model<IResume, ResumeModel>('Resume', resumeSchema);

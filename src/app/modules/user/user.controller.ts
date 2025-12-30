@@ -206,6 +206,7 @@ const updateWorkExperience = catchAsync(async (req: Request, res: Response) => {
 });
 
 const anlaizeUserResume = catchAsync(async (req: Request, res: Response) => {
+  const role = req.body.role;
   const filePath = getSingleFilePath(req.files, 'resume');
   if(!filePath){
     throw new ApiError(400, 'Resume not found');
@@ -213,7 +214,7 @@ const anlaizeUserResume = catchAsync(async (req: Request, res: Response) => {
   const resumeAnalysis= await ResumeAnalysis.create({
     filePath: filePath!,
   });
-  await kafkaProducer.sendMessage("resume", {type:"analyze",data:{id:resumeAnalysis._id,fileId:filePath}});
+  await kafkaProducer.sendMessage("resume", {type:"analyze",data:{id:resumeAnalysis._id,fileId:filePath,role}});
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -273,7 +274,7 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
 })
 
 const userListDownLoad = catchAsync(async (req: Request, res: Response) => {
-
+  req.query.limit = 100000 as any
   try {
     if(req.query.downloadItem === 'user'){
       delete req.query.downloadItem

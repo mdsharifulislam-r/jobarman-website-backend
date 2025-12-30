@@ -148,13 +148,15 @@ ${JSON.stringify({
     return result.matchedPosts as IPost[]
 }
 
-const analizeResumeHelper = async (fileId: string) => {
+const analizeResumeHelper = async (fileId: string,role:string) => {
+
+  
 try {
     const prompt = `
   You are an advanced Resume Analyzer. Analyze the resume provided in the file below and generate a detailed scorecard.
 
 file_id: ${fileId}
-
+analyze the resume of the following role: ${role}
 Your task:
 1. Read and extract all content from the resume.
 2. Evaluate the resume based on the following scoring criteria:

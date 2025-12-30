@@ -37,7 +37,9 @@ export type IResume = {
     title: string;
     description?: string;
     link?: string;
-  }[]
+  }[],
+  pdf?: string;
+  is_external_resume?: boolean;
 };
 
 export type ResumeModel = Model<IResume>;

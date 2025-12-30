@@ -18,7 +18,9 @@ export type ISpotlight = {
   },
   status:"pending" | "approved" | "rejected",
   user:Types.ObjectId,
-  isPaid:boolean
+  isPaid:boolean,
+  price?:number,
+  paymentId?:string
 };
 
 export type SpotlightModel = Model<ISpotlight>;

@@ -63,7 +63,7 @@ const createAccount = (values: ICreateAccount) => {
 
               <p style="margin-bottom:0; font-size:14px;">
                 Regards,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -71,7 +71,7 @@ const createAccount = (values: ICreateAccount) => {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 
@@ -144,7 +144,7 @@ const resetPassword = (values: IResetPassword) => {
 
               <p style="margin-bottom:0; font-size:14px;">
                 Regards,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -152,7 +152,7 @@ const resetPassword = (values: IResetPassword) => {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 
@@ -176,10 +176,10 @@ const jobMatchEmailTemplate = (values: {
       <tr>
         <td style="padding:14px 0; border-bottom:1px solid #e5e7eb;">
           <p style="margin:0; font-size:14px; color:#111827; font-weight:600;">
-            ${job.title} ${job?.job_board ? `(${job?.job_board||'JOBERMAN'})` : 'JOBERMAN'}
+            ${job.title} ${job?.job_board ? `(${job?.job_board||'JOBARMAN'})` : 'JOBARMAN'}
           </p>
           <a 
-            href="${job?.job_url||`https://JOBERMAN.com/posts/${(job as any)._id}`}" 
+            href="${job?.job_url||`https://JOBARMAN.com/posts/${(job as any)._id}`}" 
             style="display:inline-block; margin-top:6px; font-size:13px; color:#FF8F27; text-decoration:none; font-weight:600;"
           >
             View job
@@ -191,14 +191,14 @@ const jobMatchEmailTemplate = (values: {
 
   return {
     to: values.email,
-    subject: 'New Job Matches Just for You | JOBERMAN',
+    subject: 'New Job Matches Just for You | JOBARMAN',
     html: values.isPremiumUser
       ? `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>JOBERMAN Job Matches</title>
+  <title>JOBARMAN Job Matches</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -211,11 +211,11 @@ const jobMatchEmailTemplate = (values: {
             <td style="background:#123499; padding:24px; text-align:center;">
               <img 
                 src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png" 
-                alt="JOBERMAN Logo" 
+                alt="JOBARMAN Logo" 
                 style="max-height:45px; margin-bottom:10px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
-                JOBERMAN
+                JOBARMAN
               </h2>
               <p style="margin:6px 0 0; color:#dbeafe; font-size:13px;">
                 Smart job matching powered by AI
@@ -248,12 +248,12 @@ const jobMatchEmailTemplate = (values: {
               </div>
 
               <p style="margin-top:20px; font-size:14px;">
-                Visit your JOBERMAN dashboard to explore more opportunities.
+                Visit your JOBARMAN dashboard to explore more opportunities.
               </p>
 
               <p style="margin-bottom:0; font-size:14px;">
                 Regards,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -270,7 +270,7 @@ const jobMatchEmailTemplate = (values: {
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>JOBERMAN Job Matches</title>
+  <title>JOBARMAN Job Matches</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -283,11 +283,11 @@ const jobMatchEmailTemplate = (values: {
             <td style="background:#123499; padding:24px; text-align:center;">
               <img 
                 src="https://your-domain.com/logo.png" 
-                alt="JOBERMAN Logo" 
+                alt="JOBARMAN Logo" 
                 style="max-height:45px; margin-bottom:10px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
-                JOBERMAN
+                JOBARMAN
               </h2>
               <p style="margin:6px 0 0; color:#dbeafe; font-size:13px;">
                 Smart job matching powered by AI
@@ -316,12 +316,12 @@ const jobMatchEmailTemplate = (values: {
               </div>
 
               <p style="margin-top:20px; font-size:14px;">
-                Visit your JOBERMAN dashboard to continue your job search.
+                Visit your JOBARMAN dashboard to continue your job search.
               </p>
 
               <p style="margin-bottom:0; font-size:14px;">
                 Regards,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -346,7 +346,7 @@ const interviewCancelTemplate = (values: {
 }) => {
   const data = {
     to: values.email,
-    subject: 'JOBERMAN - Interview Cancelled',
+    subject: 'JOBARMAN - Interview Cancelled',
     html:`<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
@@ -358,7 +358,7 @@ const interviewCancelTemplate = (values: {
             <td style="background:#123499; padding:24px; text-align:center;">
               <img
                 src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
-                alt="JOBERMAN Logo"
+                alt="JOBARMAN Logo"
                 style="display:block; margin:0 auto 10px auto; max-height:50px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
@@ -392,12 +392,12 @@ const interviewCancelTemplate = (values: {
               </p>
 
               <p style="font-size:13px; color:#555;">
-                You can continue exploring other job opportunities on JOBERMAN that match your profile.
+                You can continue exploring other job opportunities on JOBARMAN that match your profile.
               </p>
 
               <p style="margin-bottom:0; font-size:14px;">
                 Kind regards,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -405,7 +405,7 @@ const interviewCancelTemplate = (values: {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 
@@ -426,7 +426,7 @@ const jobApplicationRejectedTemplate = (values: {
 }) => {
   const data = {
     to: values.email,
-    subject: 'JOBERMAN - Job Application Update',
+    subject: 'JOBARMAN - Job Application Update',
     html: `<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
@@ -438,7 +438,7 @@ const jobApplicationRejectedTemplate = (values: {
             <td style="background:#123499; padding:24px; text-align:center;">
               <img
                 src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
-                alt="JOBERMAN Logo"
+                alt="JOBARMAN Logo"
                 style="display:block; margin:0 auto 10px auto; max-height:50px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
@@ -473,7 +473,7 @@ const jobApplicationRejectedTemplate = (values: {
 
               <p style="font-size:13px; color:#555;">
                 This decision does not reflect your skills or potential.  
-                We encourage you to continue applying for other opportunities on JOBERMAN.
+                We encourage you to continue applying for other opportunities on JOBARMAN.
               </p>
 
               <p style="font-size:13px; color:#555;">
@@ -482,7 +482,7 @@ const jobApplicationRejectedTemplate = (values: {
 
               <p style="margin-bottom:0; font-size:14px;">
                 Best wishes,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -490,7 +490,7 @@ const jobApplicationRejectedTemplate = (values: {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 
@@ -515,7 +515,7 @@ const interviewSelectedTemplate = (values: {
 }) => {
   const data = {
     to: values.email,
-    subject: 'JOBERMAN - Interview Invitation',
+    subject: 'JOBARMAN - Interview Invitation',
     html: `<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
@@ -527,7 +527,7 @@ const interviewSelectedTemplate = (values: {
             <td style="background:#123499; padding:24px; text-align:center;">
               <img
                 src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
-                alt="JOBERMAN Logo"
+                alt="JOBARMAN Logo"
                 style="display:block; margin:0 auto 10px auto; max-height:50px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
@@ -585,7 +585,7 @@ const interviewSelectedTemplate = (values: {
 
               <p style="margin-bottom:0; font-size:14px;">
                 Best regards,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -593,7 +593,7 @@ const interviewSelectedTemplate = (values: {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 
@@ -615,7 +615,7 @@ const shortlistedApplicationTemplate = (values: {
 }) => {
   const data = {
     to: values.email,
-    subject: 'JOBERMAN - Application Shortlisted',
+    subject: 'JOBARMAN - Application Shortlisted',
     html: `<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
@@ -627,7 +627,7 @@ const shortlistedApplicationTemplate = (values: {
             <td style="background:#123499; padding:24px; text-align:center;">
               <img
                 src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
-                alt="JOBERMAN Logo"
+                alt="JOBARMAN Logo"
                 style="display:block; margin:0 auto 10px auto; max-height:50px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
@@ -663,13 +663,13 @@ const shortlistedApplicationTemplate = (values: {
               </div>
 
               <p style="font-size:13px; color:#555;">
-                Thank you for your interest in JOBERMAN and for taking the time to apply.
+                Thank you for your interest in JOBARMAN and for taking the time to apply.
                 We appreciate your patience during this process.
               </p>
 
               <p style="margin-bottom:0; font-size:14px;">
                 Best regards,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -677,7 +677,7 @@ const shortlistedApplicationTemplate = (values: {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 
@@ -700,7 +700,7 @@ const transactionOtpTemplate = (values: {
 }) => {
   const data = {
     to: values.email,
-    subject: 'JOBERMAN - Transaction Verification Code',
+    subject: 'JOBARMAN - Transaction Verification Code',
     html: `<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
@@ -712,7 +712,7 @@ const transactionOtpTemplate = (values: {
             <td style="background:#123499; padding:24px; text-align:center;">
               <img
                 src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
-                alt="JOBERMAN Logo"
+                alt="JOBARMAN Logo"
                 style="display:block; margin:0 auto 10px auto; max-height:50px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
@@ -747,12 +747,12 @@ const transactionOtpTemplate = (values: {
 
               <p style="font-size:13px; color:#b91c1c; text-align:left;">
                 ⚠️ Do not share this code with anyone.  
-                JOBERMAN will never ask for your OTP.
+                JOBARMAN will never ask for your OTP.
               </p>
 
               <p style="margin-bottom:0; font-size:14px; text-align:left;">
                 Regards,<br />
-                <strong>JOBERMAN Security Team</strong>
+                <strong>JOBARMAN Security Team</strong>
               </p>
             </td>
           </tr>
@@ -760,7 +760,7 @@ const transactionOtpTemplate = (values: {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 
@@ -784,7 +784,7 @@ export const zoomMeetingInviteTemplate = (values: {
 }) => {
   return {
     to: values.email,
-    subject: 'JOBERMAN - Zoom Meeting Invitation',
+    subject: 'JOBARMAN - Zoom Meeting Invitation',
     html: `
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -797,7 +797,7 @@ export const zoomMeetingInviteTemplate = (values: {
             <td style="background:#123499; padding:24px; text-align:center;">
               <img
                 src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
-                alt="JOBERMAN Logo"
+                alt="JOBARMAN Logo"
                 style="display:block; margin:0 auto 10px auto; max-height:50px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
@@ -814,7 +814,7 @@ export const zoomMeetingInviteTemplate = (values: {
               </p>
 
               <p style="font-size:14px;">
-                You have been invited to attend a Zoom meeting via JOBERMAN.
+                You have been invited to attend a Zoom meeting via JOBARMAN.
                 Please find the meeting details below.
               </p>
 
@@ -845,7 +845,7 @@ export const zoomMeetingInviteTemplate = (values: {
 
               <p style="margin-bottom:0; font-size:14px;">
                 Regards,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -853,7 +853,7 @@ export const zoomMeetingInviteTemplate = (values: {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 
@@ -875,7 +875,7 @@ export const congratulationsHiredTemplate = (values: {
 }) => {
   return {
     to: values.email,
-    subject: 'JOBERMAN - Congratulations! You’re Hired 🎉',
+    subject: 'JOBARMAN - Congratulations! You’re Hired 🎉',
     html: `
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -888,7 +888,7 @@ export const congratulationsHiredTemplate = (values: {
             <td style="background:#16a34a; padding:24px; text-align:center;">
               <img
                 src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
-                alt="JOBERMAN Logo"
+                alt="JOBARMAN Logo"
                 style="display:block; margin:0 auto 10px auto; max-height:50px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
@@ -933,7 +933,7 @@ export const congratulationsHiredTemplate = (values: {
 
               <p style="margin-bottom:0; font-size:14px;">
                 Best wishes,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -941,7 +941,7 @@ export const congratulationsHiredTemplate = (values: {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 
@@ -962,7 +962,7 @@ export const applicationRejectedTemplate = (values: {
 }) => {
   return {
     to: values.email,
-    subject: 'JOBERMAN - Application Update',
+    subject: 'JOBARMAN - Application Update',
     html: `
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0">
@@ -975,7 +975,7 @@ export const applicationRejectedTemplate = (values: {
             <td style="background:#6b7280; padding:24px; text-align:center;">
               <img
                 src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png"
-                alt="JOBERMAN Logo"
+                alt="JOBARMAN Logo"
                 style="display:block; margin:0 auto 10px auto; max-height:50px;"
               />
               <h2 style="margin:0; color:#ffffff; font-size:20px;">
@@ -1018,7 +1018,7 @@ export const applicationRejectedTemplate = (values: {
 
               <p style="margin-bottom:0; font-size:14px;">
                 Kind regards,<br />
-                <strong>JOBERMAN Team</strong>
+                <strong>JOBARMAN Team</strong>
               </p>
             </td>
           </tr>
@@ -1026,7 +1026,7 @@ export const applicationRejectedTemplate = (values: {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#777;">
-              © ${new Date().getFullYear()} JOBERMAN. All rights reserved.
+              © ${new Date().getFullYear()} JOBARMAN. All rights reserved.
             </td>
           </tr>
 

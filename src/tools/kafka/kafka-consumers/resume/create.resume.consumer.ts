@@ -23,8 +23,8 @@ export const ResumeConsumer = async () => {
               await ResumeServices.deleteResumeFromDB(data.data._id);
               break;
             case 'analyze':
-              const { id, fileId } = data.data;
-              const result = await UserService.anlaizeUserResume(fileId, id);
+              const { id, fileId,role } = data.data;
+              const result = await UserService.anlaizeUserResume(fileId, id,role);
               break;
           }
         } catch (error) {

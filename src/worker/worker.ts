@@ -10,13 +10,18 @@ import { ICompanyInfo } from '../app/modules/admin/admin.interface';
 import { CompanyInfo } from '../app/modules/admin/admin.model';
 import { Subscription } from '../app/modules/subscription/subscription.model';
 import { sendNotifications } from '../helpers/notificationsHelper';
+import { subscriptionHelper } from '../app/modules/subscription/subscription.helper';
+import { Category } from '../app/modules/category/category.model';
+import { Jobs } from 'openai/resources/fine-tuning/jobs/jobs';
+import { jobspikrHelper } from '../helpers/jobspkrHelper';
 
 export const startWorker = () => {
-  cron.schedule('* * * * *',async () => {
-    // AutoApply();
-    // getUserInfoAndSendEmailToThem();
-    // await deleteExpireJobsPosts();
-    // await suspendExpiredSubscriptions();
+  cron.schedule('0 0 * * *',async () => {
+    AutoApply();
+    getUserInfoAndSendEmailToThem();
+    await deleteExpireJobsPosts();
+    await suspendExpiredSubscriptions();
+    await fetchNewData();
     console.log('Cron Job Runned');
     
   });
@@ -57,13 +62,15 @@ export const matchAndApplyPost = async (user: IUser & { _id: string }) => {
       { _id: 1, post: 1 }
     ).lean();
 
+    const subscriptionBasedLimit = await subscriptionHelper.isPremiumUser(user._id,"bronze")?10:(await subscriptionHelper.isPremiumUser(user._id,"gold") || await subscriptionHelper.isPremiumUser(user._id,"silver"))?1000000:0
+
     const postIds = applications.map(app => app.post);
     let post = await Post.find({
       _id: { $nin: postIds },
       deadline: { $gte: new Date() },
       status: 'active',
     })
-      .limit(50)
+      .limit(subscriptionBasedLimit)
       .lean();
     post = post.map(post => ({
       ...post,
@@ -155,3 +162,18 @@ const suspendExpiredSubscriptions = async () => {
     console.log(error);
   }
 };
+
+
+const fetchNewData = async ()=>{
+  const categories = (await Category.find()).map((category) => category.name);
+
+  const getThirdPartyJobs = await jobspikrHelper.getJobs({
+    jobtitles: categories,
+    limit:1000
+  })
+
+  await Post.insertMany(getThirdPartyJobs?.data);
+
+  console.log(`Fetched ${getThirdPartyJobs.data?.length} new jobs`);
+  
+}

@@ -85,6 +85,15 @@ export const ResumeSchema = z.object({
     .optional(),
 });
 
+
+const createExternalResumeZodSchema = z.object({
+  body: z.object({
+    name: z.string({ required_error: 'Name is required' }),
+    resume: z.any({ required_error: 'Resume is required' }),
+  }),
+});
+
 export const ResumeValidations = {
   ResumeSchema,
+  createExternalResumeZodSchema
 };

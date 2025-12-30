@@ -1,6 +1,7 @@
 import { USER_ROLES } from '../../../enums/user';
 import { RedisHelper } from '../../../tools/redis/redis.helper';
 import { Post } from '../post/post.model';
+import { Spotlight } from '../spotlight/spotlight.model';
 import { Subscription } from '../subscription/subscription.model';
 import { User } from '../user/user.model';
 
@@ -27,11 +28,31 @@ const getSummuryFromDb = async () => {
     },
   ]);
 
+  const totalSpotlightsPrice = await Spotlight.aggregate([
+    {
+      $match: {
+        isPaid: true,
+        price: { $gt: 0 },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        total: {
+          $sum: '$price',
+        },
+      },
+    },
+  ]);
+
+  console.log(totalSpotlightsPrice);
+  
+  const spotlightPrice = totalSpotlightsPrice.length > 0 ? Number(totalSpotlightsPrice[0].total) : 0;
   return {
     toalJobSeekers,
     toalRecruiters,
     totalActiveJobs,
-    totalRevinue: totalRevinue.length > 0 ? Number(totalRevinue[0].total).toFixed(2) : 0,
+    totalRevinue: totalRevinue.length > 0 ? Number(totalRevinue[0].total+ spotlightPrice).toFixed(2) : 0,
   };
 };
 

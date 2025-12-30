@@ -5,6 +5,7 @@ import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.produc
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
 import { cleanObject } from '../../../helpers/cleanObject';
+import { getSingleFilePath } from '../../../shared/getFilePath';
 
 const createResume = catchAsync(async (req: Request, res: Response) => {
     const { ...resumeData } = req.body;
@@ -66,10 +67,29 @@ const getResume = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+
+const createResumeIntoExternalPdf =catchAsync(async (req: Request, res: Response) => {
+    const { ...resumeData } = req.body;
+    const pdf = getSingleFilePath(req.files, 'resume');
+    const resume  = await ResumeServices.createResumeIntoExternalPdf({
+        ...resumeData,
+        user: (req.user as any).id,
+        pdf: pdf,
+        resume_name: resumeData?.name
+    });
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Resume created successfully',
+        data: resumeData
+    });
+})
+
 export const ResumeController = {
     createResume,
     updateResume,
     deleteResume,
     getAllResumes,
-    getResume
+    getResume,
+    createResumeIntoExternalPdf
 };

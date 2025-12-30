@@ -10,11 +10,7 @@ const createSpotlightZodSchema = z.object({
         mode: z.string().min(2, { message: 'Mode must be at least 2 characters' }),
         location: z.string().min(2, { message: 'Location must be at least 2 characters' }),
         pricing: z.string().min(2, { message: 'Pricing must be at least 2 characters' }),
-        start_date: z.string().refine((date) => !isNaN(Date.parse(date)), { message: 'Start date must be a valid date' }).refine((startDate: string,) => {
-            const now = new Date();
-            const start = new Date(startDate);
-            return start >= now;
-        }, { message: 'start date must be geater than current date' }),
+        start_date: z.string(),
         end_date: z.string().refine((date) => !isNaN(Date.parse(date)), { message: 'End date must be a valid date' }).refine((endDate: string) => {
             const now = new Date();
             const end = new Date(endDate);

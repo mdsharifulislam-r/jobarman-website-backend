@@ -49,6 +49,7 @@ const addWorkExperienceZodSchema = z.object({
 const analyzeResumeZodSchema = z.object({
   body: z.object({
     resume: z.any({ required_error: 'Resume file is required' }),
+    role: z.string({ required_error: 'Role is required' }),
   }),
 })
 

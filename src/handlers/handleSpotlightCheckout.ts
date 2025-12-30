@@ -8,7 +8,7 @@ export const handleSpotlightCheckout = async (payload: Stripe.Checkout.Session):
     try {
         mongoSession.startTransaction();
         const spotlightId = payload.metadata?.spotlightId;
-        await Spotlight.findByIdAndUpdate(spotlightId, { isPaid: true }, { session: mongoSession });
+        await Spotlight.findByIdAndUpdate(spotlightId, { isPaid: true,paymentId:payload.payment_intent,price:((payload?.amount_total||0)/100)}, { session: mongoSession });
         await sendNotifications({
             title: `Spotlight Payment Successful!`,
             message: `Your payment for the spotlight has been successfully processed. Admin will review and approve your spotlight shortly.`,

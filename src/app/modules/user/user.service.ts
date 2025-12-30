@@ -239,9 +239,9 @@ const deleteWorkExperienceOfUser = async (user: JwtPayload, id: string) => {
   return workExperience;
 };
 
-const anlaizeUserResume = async (cvPath:string,id:string) => {
+const anlaizeUserResume = async (cvPath:string,id:string,role?:string) => {
   const fileId = await openAiFileUpload(cvPath);
-  const result = await AIHelper.analizeResumeHelper(fileId!);
+  const result = await AIHelper.analizeResumeHelper(fileId!,role!);
   const io = (global as any ).io;
   io.emit(`resume-analysis::${id}`,result);
   await ResumeAnalysis.updateOne({_id:id},{analysis:result,status:"completed"},{upsert:true});
