@@ -124,8 +124,8 @@ const subscribeByStripe = async (packageId: string, user: JwtPayload) => {
       },
     ],
     mode: "subscription",
-    success_url: `https://example.com/success`,
-    cancel_url: `https://example.com/cancel`,
+    success_url: `${config.urls.frontend_url}/pricing`,
+    cancel_url: `${config.urls.frontend_url}/pricing`,
     customer_email: userExist.email,
 
   });
@@ -140,6 +140,8 @@ const demoSubscriptionForTest = async (packageId:string,user:JwtPayload)=>{
     throw new ApiError(StatusCodes.BAD_REQUEST, "Package doesn't exist!");
   }
 
+  await User.findOneAndUpdate({ _id: user.id }, { $set: { subscription: null } });
+  await Subscription.updateMany({ user: user.id,status:"active" }, { $set: { status: "inactive" } });
   const subscription = await Subscription.create({
     name: packageData.name,
     price: packageData.price,

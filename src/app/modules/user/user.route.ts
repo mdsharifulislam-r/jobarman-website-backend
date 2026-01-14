@@ -5,6 +5,7 @@ import fileUploadHandler from '../../middlewares/fileUploadHandler';
 import validateRequest from '../../middlewares/validateRequest';
 import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
+import { subscribeAuth } from '../../middlewares/subscribeAuth';
 const router = express.Router();
 router.route('/change-status/:id')
   .put(auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),UserController.updateUserStatus)
@@ -86,6 +87,8 @@ router
   .route('/analyze-resume')
   .post(
     fileUploadHandler(),
+    auth(),
+    subscribeAuth(["silver","gold"]),
     validateRequest(UserValidation.analyzeResumeZodSchema),
     UserController.anlaizeUserResume
   )

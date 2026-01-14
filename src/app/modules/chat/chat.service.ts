@@ -1,3 +1,4 @@
+import { Jwt, JwtPayload } from 'jsonwebtoken';
 import { IMessage } from '../message/message.interface';
 import { Message } from '../message/message.model';
 import { IChat } from './chat.interface';
@@ -53,4 +54,29 @@ const getChatFromDB = async (user: any, search: string): Promise<IChat[]> => {
     return chatList;
 };
 
-export const ChatService = { createChatToDB, getChatFromDB };
+
+const singleChatDetails = async (chatId: string,user:JwtPayload) => {
+    const chat= await Chat.findById(chatId).populate([{
+        path: 'participants',
+        select: '_id name image contact',
+        match: {
+            _id: { $ne: user.id }, // Exclude user.id in the populated participants
+            // ...(search && { name: { $regex: search, $options: 'i' } }), // Apply $regex only if search is valid
+        }
+    }]).select('participants status');
+    if (!chat) {
+        throw new Error('Chat not found');
+    }
+    const lastMessage: IMessage | null = await Message.findOne({ chatId: chat?._id })
+    .sort({ createdAt: -1 })
+    .select('text offer createdAt sender');
+
+  
+    return {
+        ...chat.toObject(),
+        participants:chat?.participants[0],
+        lastMessage: lastMessage || null,
+    };
+}
+
+export const ChatService = { createChatToDB, getChatFromDB, singleChatDetails };

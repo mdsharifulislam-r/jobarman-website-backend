@@ -13,7 +13,8 @@ router.route("/")
 
 router.route("/external-resume")
     .post(auth(),fileUploadHandler(),validateRequest(ResumeValidations.createExternalResumeZodSchema),ResumeController.createResumeIntoExternalPdf)
-
+router.route("/external-resume/:id")
+    .patch(auth(),fileUploadHandler(),ResumeController.updateResumeExternalPdf)
 router.route("/:id")
     .patch(auth(),validateRequest(ResumeValidations.ResumeSchema.partial()),ResumeController.updateResume)
     .delete(auth(),ResumeController.deleteResume)

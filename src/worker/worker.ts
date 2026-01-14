@@ -17,7 +17,7 @@ import { jobspikrHelper } from '../helpers/jobspkrHelper';
 
 export const startWorker = () => {
   cron.schedule('0 0 * * *',async () => {
-    AutoApply();
+   await AutoApply();
     getUserInfoAndSendEmailToThem();
     await deleteExpireJobsPosts();
     await suspendExpiredSubscriptions();
@@ -70,7 +70,6 @@ export const matchAndApplyPost = async (user: IUser & { _id: string }) => {
       deadline: { $gte: new Date() },
       status: 'active',
     })
-      .limit(subscriptionBasedLimit)
       .lean();
     post = post.map(post => ({
       ...post,
@@ -83,9 +82,9 @@ export const matchAndApplyPost = async (user: IUser & { _id: string }) => {
       20,
       '',
       post as any
-    );
+    )
     await Promise.all(
-      aiSuggesstionPost.map(async (postId: any) => {
+      aiSuggesstionPost?.slice(0,subscriptionBasedLimit)?.map(async (postId: any) => {
         await Application.create({
           user: user._id,
           post: postId._id,

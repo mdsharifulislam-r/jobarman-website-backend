@@ -9,6 +9,7 @@ import stripe from '../../../config/stripe';
 import { SpotlightPrice } from '../admin/admin.model';
 import ApiError from '../../../errors/ApiError';
 import { User } from '../user/user.model';
+import config from '../../../config';
 
 const createSpotlight = async (data: ISpotlight) => {
     const spotlight = await Spotlight.create(data);
@@ -33,8 +34,8 @@ const createSpotlight = async (data: ISpotlight) => {
             },
         ],
         mode: 'payment',
-        success_url: `https://example.com/success`,
-        cancel_url: `https://example.com/cancel`,
+        success_url: `${config.urls.frontend_url}/career-spotlight`,
+        cancel_url: `${config.urls.frontend_url}/career-spotlight`,
         customer_email: userInfo?.email || undefined,
         metadata: {
             spotlightId: spotlight._id.toString(),
@@ -85,7 +86,7 @@ const approveSpotlight = async (id: string, status: 'approved' | 'rejected') => 
 
 
 const getSpotlightsFromDB = async (query: Record<string, any>,user:JwtPayload) => {
-    if([USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN].includes(user.role)){
+    if([USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN].includes(user?.role)){
         const spotlightQuery = new QueryBuilder(Spotlight.find({isPaid:true}),query).paginate().sort().filter(['downloadType'])
 
         const [spotlights,pagination] = await Promise.all([
@@ -97,10 +98,11 @@ const getSpotlightsFromDB = async (query: Record<string, any>,user:JwtPayload) =
             spotlights
         }
     }
-    if(user.role === USER_ROLES.RECRUITER){
+    if(user?.role === USER_ROLES.RECRUITER){
         const pendingSpotlights = await Spotlight.countDocuments({ status: 'pending', user: user.id, isPaid:true });
         const totalSpotlights = await Spotlight.countDocuments({ user: user.id, isPaid:true });
-        const spotlightQuery = new QueryBuilder(Spotlight.find({user:user.id,isPaid:true}),query).paginate().sort()
+        const activeSpotlights = await Spotlight.countDocuments({ status: 'approved', user: user.id, isPaid:true });
+        const spotlightQuery = new QueryBuilder(Spotlight.find({user:user.id,isPaid:true}),query).paginate().sort().filter(['downloadType'])
 
         const [spotlights,pagination] = await Promise.all([
             spotlightQuery.modelQuery.lean(),
@@ -111,11 +113,12 @@ const getSpotlightsFromDB = async (query: Record<string, any>,user:JwtPayload) =
             spotlights,
             stats:{
                 pendingSpotlights,
-                totalSpotlights
+                totalSpotlights,
+                activeSpotlights
             }
         }
     }
-    if(user.role == USER_ROLES.EMPLOYEE){
+    if(user?.role == USER_ROLES.EMPLOYEE || !user?.role){
         const spotlightQuery = new QueryBuilder(Spotlight.find({status:'approved',isPaid:true}),query).paginate().sort()
 
         const [spotlights,pagination] = await Promise.all([

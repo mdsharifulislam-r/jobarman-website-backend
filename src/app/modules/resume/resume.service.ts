@@ -47,11 +47,19 @@ const createResumeIntoExternalPdf = async (data: IResume) => {
   const createResume = await Resume.create(data);
   return createResume
 }
+
+const updateResumeExternalPdf = async (id: string, data: IResume) => {
+  const result = await Resume.findOneAndUpdate({ _id: id }, data, {
+    new: true,
+  });
+  return result;
+}
 export const ResumeServices = {
     crateResumeIntoDB,
     getAllResumeFromDB,
     updateResumeToDB,
     deleteResumeFromDB,
     getResumeByIdFromDB,
-    createResumeIntoExternalPdf
+    createResumeIntoExternalPdf,
+    updateResumeExternalPdf
 };

@@ -123,6 +123,7 @@ const forgetPasswordToDB = async (email: string) => {
     oneTimeCode: otp,
     expireAt: new Date(Date.now() + 3 * 60000),
   };
+
   await User.findOneAndUpdate({ email }, { $set: { authentication } });
 };
 
@@ -210,8 +211,20 @@ const resetPasswordToDB = async (
 
   //user permission check
   const isExistUser = await User.findById(isExistToken.user).select(
-    '+authentication'
+    '+authentication +password',
+    
   );
+  const isMatchPassword = await User.isMatchPassword(
+    newPassword,
+    isExistUser?.password!
+  )
+
+  if(isMatchPassword){
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "Please use different password from current password"
+    );
+  }
   if (!isExistUser?.authentication?.isResetPassword) {
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,

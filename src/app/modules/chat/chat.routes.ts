@@ -15,4 +15,9 @@ router.get(
   ChatController.getChat
 );
 
+router.get(
+  '/:id',
+  auth(),
+  ChatController.singleChatDetails
+)
 export const ChatRoutes = router;

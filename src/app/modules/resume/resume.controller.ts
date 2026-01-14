@@ -85,11 +85,29 @@ const createResumeIntoExternalPdf =catchAsync(async (req: Request, res: Response
     });
 })
 
+const updateResumeExternalPdf =catchAsync(async (req: Request, res: Response) => {
+    const { ...resumeData } = req.body;
+    const id = req.params.id;
+    const pdf = getSingleFilePath(req.files, 'resume');
+    const resume  = await ResumeServices.updateResumeExternalPdf(id, {
+        ...resumeData,
+        pdf: pdf,
+        resume_name: resumeData?.name
+    });
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Resume updated successfully',
+        data: resume
+    });
+})
+
 export const ResumeController = {
     createResume,
     updateResume,
     deleteResume,
     getAllResumes,
     getResume,
-    createResumeIntoExternalPdf
+    createResumeIntoExternalPdf,
+    updateResumeExternalPdf
 };
