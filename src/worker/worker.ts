@@ -14,7 +14,6 @@ import { subscriptionHelper } from '../app/modules/subscription/subscription.hel
 import { Category } from '../app/modules/category/category.model';
 import { Jobs } from 'openai/resources/fine-tuning/jobs/jobs';
 import { jobspikrHelper } from '../helpers/jobspkrHelper';
-//kludge to run cron job in worker thread
 export const startWorker = () => {
   cron.schedule('0 0 * * *',async () => {
    await AutoApply();
