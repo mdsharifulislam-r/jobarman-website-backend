@@ -16,7 +16,7 @@ const getSummuryFromDb = async () => {
     verified: true,
     status: 'active',
   });
-  const totalActiveJobs = await Post.countDocuments({ status: 'active' });
+  const totalActiveJobs = await Post.countDocuments({ status: 'active',is_deleted: false });
   const totalRevinue = await Subscription.aggregate([
     {
       $group: {
