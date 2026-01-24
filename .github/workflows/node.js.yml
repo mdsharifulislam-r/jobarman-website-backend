@@ -42,5 +42,5 @@ jobs:
             npm install --f
 
             # Restart or start with PM2
-            pm2 restart jobarman-server || pm2 start npm --name jobarman-server -- run start
+            pm2 restart jobarman-server || pm2 start npm --name jobarman-server -- run dev
           EOF
