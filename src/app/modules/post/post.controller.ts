@@ -66,9 +66,6 @@ const deletePost = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getPostFeed = catchAsync(async (req: Request, res: Response) => {
-    if(!(req.user as any)){
-        req.user = {id: '6942a462e161f5b337a97b59'};
-    }
     const result = await PostServices.postFeedFromDb(req.query, (req.user as any)!);
     sendResponse(res, {
         statusCode: StatusCodes.OK,

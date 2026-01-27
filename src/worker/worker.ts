@@ -161,12 +161,43 @@ const suspendExpiredSubscriptions = async () => {
   }
 };
 
+const jobTitles = [
+  // IT Jobs
+  "Backend Developer",
+  "Frontend Developer",
+  "Full Stack Developer",
+  "Software Engineer",
+  "DevOps Engineer",
+  "Cloud Engineer",
+  "Database Administrator",
+  "QA Engineer",
+  "Mobile App Developer",
+  "System Administrator",
+  "Cybersecurity Analyst",
+  "AI/ML Engineer",
+  "Data Engineer",
+  "Data Scientist",
+
+  // Medical Jobs
+  "Doctor",
+  "Nurse",
+  "Pharmacist",
+  "Lab Technician",
+  "Surgeon",
+  "Physiotherapist",
+  "Dentist",
+  "Medical Assistant",
+  "Radiologist",
+  "Paramedic",
+  "Nutritionist",
+  "Cardiologist",
+  "Dermatologist",
+  "Pediatrician"
+];
 
 const fetchNewData = async ()=>{
-  const categories = (await Category.find()).map((category) => category.name);
-
   const getThirdPartyJobs = await jobspikrHelper.getJobs({
-    jobtitles: categories,
+    jobtitles: jobTitles,
     limit:1000
   })
 
