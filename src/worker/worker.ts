@@ -14,6 +14,7 @@ import { subscriptionHelper } from '../app/modules/subscription/subscription.hel
 import { Category } from '../app/modules/category/category.model';
 import { Jobs } from 'openai/resources/fine-tuning/jobs/jobs';
 import { jobspikrHelper } from '../helpers/jobspkrHelper';
+import { highDemandJobs } from '../data/jobs';
 export const startWorker = () => {
   cron.schedule('0 0 * * *',async () => {
    await AutoApply();
@@ -161,43 +162,11 @@ const suspendExpiredSubscriptions = async () => {
   }
 };
 
-const jobTitles = [
-  // IT Jobs
-  "Backend Developer",
-  "Frontend Developer",
-  "Full Stack Developer",
-  "Software Engineer",
-  "DevOps Engineer",
-  "Cloud Engineer",
-  "Database Administrator",
-  "QA Engineer",
-  "Mobile App Developer",
-  "System Administrator",
-  "Cybersecurity Analyst",
-  "AI/ML Engineer",
-  "Data Engineer",
-  "Data Scientist",
 
-  // Medical Jobs
-  "Doctor",
-  "Nurse",
-  "Pharmacist",
-  "Lab Technician",
-  "Surgeon",
-  "Physiotherapist",
-  "Dentist",
-  "Medical Assistant",
-  "Radiologist",
-  "Paramedic",
-  "Nutritionist",
-  "Cardiologist",
-  "Dermatologist",
-  "Pediatrician"
-];
 
 const fetchNewData = async ()=>{
   const getThirdPartyJobs = await jobspikrHelper.getJobs({
-    jobtitles: jobTitles,
+    jobtitles: highDemandJobs,
     limit:1000
   })
 

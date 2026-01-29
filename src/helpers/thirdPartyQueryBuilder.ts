@@ -14,10 +14,12 @@ export interface IQuery {
 export function buildElasticQuery(params: IQuery) {
   const must: any[] = [];
   const must_not: any[] = [];
-  // one month before date 
+  // two days before date 
   params.location=["United States"];
-  const oneMonthBeforeDate = new Date();
-  oneMonthBeforeDate.setMonth(oneMonthBeforeDate.getMonth() - 1);
+  const twoDaysBefore = new Date();
+  twoDaysBefore.setDate(twoDaysBefore.getDate() - 2);
+
+  
 
   // Job titles
   if (params.jobtitles?.length) {
@@ -71,11 +73,11 @@ export function buildElasticQuery(params: IQuery) {
   }
 
   // Post date (last X days or exact date)
-  if (params?.postDate || oneMonthBeforeDate.toISOString().split("T")[0]) {
+  if (params?.postDate || twoDaysBefore.toISOString().split("T")[0]) {
     must.push({
       range: {
         post_date: {
-          gte: params.postDate || oneMonthBeforeDate.toISOString().split("T")[0]
+          gte: params.postDate || twoDaysBefore.toISOString().split("T")[0]
         }
       }
     });
