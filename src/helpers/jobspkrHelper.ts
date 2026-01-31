@@ -25,7 +25,6 @@ class JobspikrHelper{
 
     async getJobs(query:IQuery,category?:string){
         const data:JobspikrResponse= await this.requestHandler('https://api.jobspikr.com/v2/data','POST',buildElasticQuery(query));
-        console.log(data);
         
         
         return {

@@ -106,10 +106,10 @@ export function buildElasticQuery(params: IQuery) {
   //   });
   // }
 
-  must_not.push({
+  must.push({
     query_string: {
       default_field: "has_expired",
-      query: true
+      query: false
     }
   });
 
