@@ -86,6 +86,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   const initalQuery = {
     is_deleted: false,
     status: { $ne: 'closed' },
+    $or: [],
   } as Record<string, any>;
 
   let elasticQuery = {} as IQuery
