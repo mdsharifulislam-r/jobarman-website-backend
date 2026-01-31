@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
 import { IPackage, PackageModel } from "./package.interface";
+import { PACKAGE_TYPE } from "../../../enums/package";
 
 const packageSchema = new mongoose.Schema<IPackage,PackageModel>({
     name: {
         type: String,
+        enum:Object.values(PACKAGE_TYPE),
         required: true,
     },
     price: {
@@ -42,7 +44,11 @@ const packageSchema = new mongoose.Schema<IPackage,PackageModel>({
         type: String,
         enum: ['active', 'delete'],
         default: 'active',
-    }
+    },
+    interval: {
+        type: Number,
+        default: 1
+    },
 },{
     timestamps: true
 })

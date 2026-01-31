@@ -140,13 +140,16 @@ const demoSubscriptionForTest = async (packageId:string,user:JwtPayload)=>{
     throw new ApiError(StatusCodes.BAD_REQUEST, "Package doesn't exist!");
   }
 
+  const statrDate =new Date()
+  const endDate = packageData.recurring === "year" ? new Date(statrDate.getFullYear() + 1, statrDate.getMonth(), statrDate.getDate()) : new Date(statrDate.getFullYear(), statrDate.getMonth() + (packageData.interval || 1), statrDate.getDate());
+
   await User.findOneAndUpdate({ _id: user.id }, { $set: { subscription: null } });
   await Subscription.updateMany({ user: user.id,status:"active" }, { $set: { status: "inactive" } });
   const subscription = await Subscription.create({
     name: packageData.name,
     price: packageData.price,
     startDate: new Date(),
-    endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+    endDate: endDate,
     txId: "demo",
     user: user.id,
     status: "active",

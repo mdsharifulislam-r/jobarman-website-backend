@@ -1,7 +1,8 @@
 import { Model } from "mongoose";
+import { PACKAGE_TYPE } from "../../../enums/package";
 
 export type IPackage = {
-    name: string,
+    name: PACKAGE_TYPE,
     price: number;
     priceId?: string,
     payment_link?: string,
@@ -11,7 +12,8 @@ export type IPackage = {
     status: "active" | "delete";
     paymentId: string
     referenceId: string,
-    recurring:"month"|"year"|"week"
+    recurring:"month"|"year"|"week",
+    interval?:number
 }
 
 export type PackageModel = Model<IPackage>

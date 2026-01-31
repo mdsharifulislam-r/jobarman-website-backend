@@ -15,8 +15,14 @@ export const handleSubscriptionCreated = async (event: Stripe.Subscription) => {
         mongooseSession.startTransaction();
         // console.log(event);
         
-        const subscription = await stripe.subscriptions.retrieve(event.id);
-        console.log(subscription);
+        const subscription:any = await stripe.subscriptions.retrieve(event.id);
+
+        // console.log(subscription);
+        
+        
+        // const invoice = await stripe.invoices.retrieve(subscription.latest_invoice as string);
+      
+        
         
         if(!subscription){
             console.log("subscription not found");
@@ -57,8 +63,24 @@ export const handleSubscriptionCreated = async (event: Stripe.Subscription) => {
             await Subscription.findByIdAndUpdate(user.subscription,{status:"inactive"},{session:mongooseSession})
         }
 
-        const startDate = new Date(subscription.start_date * 1000)
-        const endDate = packageData.recurring == "month"? new Date(new Date().setMonth(new Date().getMonth() + 1)):new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+ const startDate = new Date(subscription.start_date * 1000);
+
+let endDate = new Date(startDate);
+
+const interval = subscription?.plan?.interval;
+const intervalCount = subscription?.plan?.interval_count || 1;
+
+if (interval === 'month') {
+  endDate.setMonth(endDate.getMonth() + intervalCount);
+} else if (interval === 'year') {
+  endDate.setFullYear(endDate.getFullYear() + intervalCount);
+} else if (interval === 'week') {
+  endDate.setDate(endDate.getDate() + 7 * intervalCount);
+} else if (interval === 'day') {
+  endDate.setDate(endDate.getDate() + intervalCount);
+}
+
+  
 
         const newSubscription = await Subscription.create({
             subscriptionId: event.id,

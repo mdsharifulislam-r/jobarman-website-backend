@@ -17,7 +17,9 @@ const createPackageIntoDB = async (data:IPackage)=>{
         currency: 'usd',
         recurring: {
             interval: data.recurring,
+            ...(data.interval && {interval_count: data.interval})
         },
+    
     })
 
     const payment_link = await stripe.paymentLinks.create({
