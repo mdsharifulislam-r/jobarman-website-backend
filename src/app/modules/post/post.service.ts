@@ -137,10 +137,10 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
      const getAllCategories = await Category.find({_id:{$in:array}})
      elasticQuery.jobtitles = getAllCategories?.map((cat: any) => cat.name);
-     initalQuery.$or= [
+     initalQuery.$or.push(...[
       {category:{$in:array}},
       {category_string:{$in:getAllCategories?.map((cat: any) => cat.name)}}
-     ]
+     ])
 
   }
 
