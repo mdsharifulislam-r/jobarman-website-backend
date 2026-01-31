@@ -171,7 +171,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     await RedisHelper.redisSet(`post_feed`, {data,pagination}, query);
     return {data,pagination};
   }
-console.log(initalQuery);
+
 
   const postQuery = new QueryBuilder(Post.find(initalQuery), query)
     .paginate()
@@ -214,12 +214,12 @@ console.log(initalQuery);
       posts.map(async (post) => {
         const applications = await Application.findOne({
           post: post._id,
-          user: user.id,
+          user: user?.id,
         });
 
         const isFavorite = await Favourite.findOne({
             post: post._id,
-            user: user.id
+            user: user?.id
         });
 
         return {
@@ -244,7 +244,7 @@ console.log(initalQuery);
 
   // third party posts 
 
-  const thirdPosts = await PostHelper.fullfillDataUsingTheThirdPartyApis(data.data.length,user.id,limit,elasticQuery,Number(query?.cursor),query?.category?.split(',')[0]);
+  const thirdPosts = await PostHelper.fullfillDataUsingTheThirdPartyApis(data.data.length,user?.id,limit,elasticQuery,Number(query?.cursor),query?.category?.split(',')[0]);
 
   data.data = [...data.data,...(thirdPosts?.data||[])];
 
