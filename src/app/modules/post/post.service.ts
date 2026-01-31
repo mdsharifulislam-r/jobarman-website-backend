@@ -76,6 +76,7 @@ const deletePostFromDB = async (id: string): Promise<IPost | null> => {
 };
 
 const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
+  await Post.updateMany({},{min_salary:0,max_salary:0})
   const cache = await RedisHelper.redisGet(`post_feed`, query);
   if (cache) {
     console.log('from cache');
@@ -86,7 +87,6 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   const initalQuery = {
     is_deleted: false,
     status: { $ne: 'closed' },
-    $or: [],
   } as Record<string, any>;
 
   let elasticQuery = {} as IQuery
@@ -94,8 +94,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     if(query.minPrice == 1){
       query.minPrice = 0
     }
-    // if price available then filter if price is not available then retrurn true
-    initalQuery?.$or?.push({ min_salary: { $gte: query.minPrice } }, { min_salary: { $exists: false } })
+    initalQuery.min_salary = { $gte: query.minPrice };
     elasticQuery.minSalary = query.minPrice
   }
 
@@ -123,7 +122,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   }
 
   if (query.maxPrice) {
-    initalQuery.$or?.push({ max_salary: { $lte: query.maxPrice } }, { max_salary: { $exists: false } })
+    initalQuery.max_salary = { $lte: query.maxPrice };
     elasticQuery.maxSalary = query.maxPrice
   }
 
@@ -138,10 +137,10 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
      const getAllCategories = await Category.find({_id:{$in:array}})
      elasticQuery.jobtitles = getAllCategories?.map((cat: any) => cat.name);
-     initalQuery.$or?.push(
+     initalQuery.$or= [
       {category:{$in:array}},
       {category_string:{$in:getAllCategories?.map((cat: any) => cat.name)}}
-     )
+     ]
 
   }
 
@@ -176,7 +175,6 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     await RedisHelper.redisSet(`post_feed`, {data,pagination}, query);
     return {data,pagination};
   }
-console.log(initalQuery);
 
 
   const postQuery = new QueryBuilder(Post.find(initalQuery), query)

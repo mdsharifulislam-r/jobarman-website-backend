@@ -21,8 +21,8 @@ const postSchema = new Schema<IPost, PostModel>({
   experience_level: {
     type: String,
   },
-  min_salary: { type: Number, },
-  max_salary: { type: Number,},
+  min_salary: { type: Number, default: 0 },
+  max_salary: { type: Number, default: 0 },
   location: { type: String, required: true },
   required_skills: { type: [String], required: false },
   deadline: { type: Date,},
