@@ -94,17 +94,17 @@ export function buildElasticQuery(params: IQuery) {
   }
 
   // Salary range
-  if (params.minSalary || params.maxSalary) {
-    const salaryRange: any = {};
-    if (params.minSalary) salaryRange.gte = params.minSalary;
-    if (params.maxSalary) salaryRange.lte = params.maxSalary;
+  // if (params.minSalary || params.maxSalary) {
+  //   const salaryRange: any = {};
+  //   if (params.minSalary) salaryRange.gte = params.minSalary;
+  //   if (params.maxSalary) salaryRange.lte = params.maxSalary;
 
-    must.push({
-      range: {
-        inferred_salary_from: salaryRange
-      }
-    });
-  }
+  //   must.push({
+  //     range: {
+  //       inferred_salary_from: salaryRange
+  //     }
+  //   });
+  // }
 
   must_not.push({
     query_string: {
