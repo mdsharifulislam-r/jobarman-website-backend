@@ -175,6 +175,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     await RedisHelper.redisSet(`post_feed`, {data,pagination}, query);
     return {data,pagination};
   }
+console.log(initalQuery);
 
 
   const postQuery = new QueryBuilder(Post.find(initalQuery), query)
