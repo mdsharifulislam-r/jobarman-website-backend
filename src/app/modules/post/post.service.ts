@@ -94,7 +94,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
       query.minPrice = 0
     }
     // if price available then filter if price is not available then retrurn true
-    initalQuery.$or = [{ min_salary: { $gte: query.minPrice } }, { min_salary: { $exists: false } }]
+    initalQuery?.$or?.push({ min_salary: { $gte: query.minPrice } }, { min_salary: { $exists: false } })
     elasticQuery.minSalary = query.minPrice
   }
 
@@ -122,7 +122,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   }
 
   if (query.maxPrice) {
-    initalQuery.$or = [{ max_salary: { $lte: query.maxPrice } }, { max_salary: { $exists: false } }]
+    initalQuery.$or?.push({ max_salary: { $lte: query.maxPrice } }, { max_salary: { $exists: false } })
     elasticQuery.maxSalary = query.maxPrice
   }
 
