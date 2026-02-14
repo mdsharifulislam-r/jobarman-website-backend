@@ -50,7 +50,7 @@ class JobspikrHelper{
                 deadline:job?.valid_through?new Date(job.valid_through):undefined,
                 job_type:changeTextinCampleCase(job.job_type) as any,
                 job_level:changeTextinCampleCase(job.inferred_seniority_level) as any,
-                location:job.city?`${job.city}, ${job.country}`:`${job.country||''}`,
+                location:job.city?`${job.city}, ${job?.country||''}`:`${job.country||''}`,
                 description:job.job_description,
                 category_string:job.inferred_department_name,
                 thumbnail:job.logo_url,
