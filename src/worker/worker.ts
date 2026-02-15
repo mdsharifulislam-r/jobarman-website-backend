@@ -16,15 +16,16 @@ import { Jobs } from 'openai/resources/fine-tuning/jobs/jobs';
 import { jobspikrHelper } from '../helpers/jobspkrHelper';
 import { highDemandJobs } from '../data/jobs';
 export const startWorker = () => {
-  cron.schedule('0 0 * * *',async () => {
-   await AutoApply();
-    getUserInfoAndSendEmailToThem();
-    await deleteExpireJobsPosts();
-    await suspendExpiredSubscriptions();
-    await fetchNewData();
-    console.log('Cron Job Runned');
-    
-  });
+  // 3 times in a day
+cron.schedule('0 8,14,20 * * *', async () => {
+  await AutoApply();
+  await getUserInfoAndSendEmailToThem();
+  await deleteExpireJobsPosts();
+  await suspendExpiredSubscriptions();
+  await fetchNewData();
+  
+  console.log('Cron Job Runned');
+});
 };
 
 
@@ -127,7 +128,7 @@ const deleteExpireJobsPosts = async () => {
       });
     }
 
-    // await Post.deleteOne({ _id: job._id });
+    await Post.deleteOne({ _id: job._id });
     
   }));
 
@@ -167,10 +168,14 @@ const suspendExpiredSubscriptions = async () => {
 const fetchNewData = async ()=>{
   const getThirdPartyJobs = await jobspikrHelper.getJobs({
     jobtitles: highDemandJobs,
-    limit:1000
+    limit:100
   })
 
-  await Post.insertMany(getThirdPartyJobs?.data);
+  const data = await Promise.all(getThirdPartyJobs?.data?.filter(async (job:any)=>{
+    return !(await Post.exists({unique_id:job.unique_id}))
+  }))
+
+  await Post.insertMany(data);
 
   console.log(`Fetched ${getThirdPartyJobs.data?.length} new jobs`);
   

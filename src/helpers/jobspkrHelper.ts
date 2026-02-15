@@ -1,3 +1,4 @@
+import { log } from "winston";
 import { IPost } from "../app/modules/post/post.interface";
 import { changeTextinCampleCase } from "../app/modules/post/post.model";
 import config from "../config";
@@ -26,6 +27,7 @@ class JobspikrHelper{
     async getJobs(query:IQuery,category?:string){
         const data:JobspikrResponse= await this.requestHandler('https://api.jobspikr.com/v2/data','POST',buildElasticQuery(query));
 
+        
         if(data.status==='error') {
             return {
                 data:[],
