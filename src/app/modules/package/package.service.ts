@@ -35,7 +35,7 @@ const createPackageIntoDB = async (data:IPackage)=>{
     return result
 }
 
-const getAllPackagesFromDB = async (type?:string)=>{
+const getAllPackagesFromDB = async (type:string="employee")=>{
     const result = await Package.find(type?{for:type,status:"active"}:{status:"active"})
     return result
 }
