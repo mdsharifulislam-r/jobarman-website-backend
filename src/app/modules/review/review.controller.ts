@@ -18,7 +18,7 @@ const createReview = catchAsync(async (req: Request, res: Response) => {
 })
 
 const getReviews = catchAsync(async (req: Request, res: Response) => {
-    const result = await ReviewServices.getReviewsFromDB(req.query);
+    const result = await ReviewServices.getReviewsFromDB(req.query, (req.user as any)!);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
@@ -27,7 +27,22 @@ const getReviews = catchAsync(async (req: Request, res: Response) => {
         pagination: result.pagination
     });
 })
+
+
+const changeStatusReview = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const result = await ReviewServices.changeStatusReview(id, status);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Review status changed successfully',
+        data: result
+    });
+})
+
 export const ReviewController = { 
     createReview,
-    getReviews
+    getReviews,
+    changeStatusReview
 };
