@@ -97,6 +97,10 @@ const apiRoutes = [
   {
     path:"/admin",
     route: AdminRoutes
+  },
+  {
+    path:"/review",
+    route: ReviewRoutes
   }
 
 ];
