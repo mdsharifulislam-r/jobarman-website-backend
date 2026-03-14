@@ -16,14 +16,14 @@ import { Jobs } from 'openai/resources/fine-tuning/jobs/jobs';
 import { jobspikrHelper } from '../helpers/jobspkrHelper';
 import { highDemandJobs } from '../data/jobs';
 export const startWorker = () => {
-  // 3 times in a day
-cron.schedule('0 8,14,20 * * *', async () => {
+// 6 times in a day (every 4 hours)
+cron.schedule('0 */4 * * *', async () => {
   await AutoApply();
   await getUserInfoAndSendEmailToThem();
   await deleteExpireJobsPosts();
   await suspendExpiredSubscriptions();
   await fetchNewData();
-  
+
   console.log('Cron Job Runned');
 });
 };
