@@ -144,7 +144,7 @@ const deleteExpireJobsPosts = async () => {
 
 const suspendExpiredSubscriptions = async () => {
   try {
-    const subscriptions = await Subscription.find({ status: 'active', end_date: { $lt: new Date() } }).lean();
+    const subscriptions = await Subscription.find({ status: 'active', endDate: { $lt: new Date() } }).lean();
     await Promise.all(subscriptions.map(async (subscription) => {
       await Subscription.updateOne({ _id: subscription._id }, { status: 'expired' });
       await User.updateOne({ _id: subscription.user }, { $pull: { subscription: subscription._id } });
