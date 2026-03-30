@@ -51,7 +51,8 @@ router.post(
 
 router.get('/google-sign-in',(req,res,next)=>{
   if(!req.query.role){
-    throw new ApiError(400,'Role is required');
+    req.query.role = USER_ROLES.EMPLOYEE;
+    // throw new ApiError(400,'Role is required');
   }
   passportHelper.passport.authenticate('google', { scope: ['email', 'profile'],state:req.query.role as any})(req, res, next);
 }, );
