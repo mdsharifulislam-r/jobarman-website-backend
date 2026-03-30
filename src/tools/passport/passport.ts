@@ -44,9 +44,7 @@ class PassportHelper {
                     clientID: config.linkeden.client_id!,
                     clientSecret: config.linkeden.client_secret!,
                     callbackURL: config.linkeden.redirect_url!,
-                    scope: ["profile", "email"],
-                    state: true,
-                    passReqToCallback: true
+                    scope: ['r_liteprofile', 'r_basicprofile'],
                 } as any,
                 async (request: any, accessToken: string, refreshToken: string, profile: any, done: any) => {
                     console.log(request);

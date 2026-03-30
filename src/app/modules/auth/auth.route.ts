@@ -72,10 +72,13 @@ router.get('/linkedin-sign-in',(req,res,next)=>{
   // if(!req.query.role){
   //   throw new ApiError(400,'Role is required');
   // }
-  passportHelper.passport.authenticate('linkedin', { scope: [ "profile", "email"],state:req.query.role as any})(req, res, next);
+  passportHelper.passport.authenticate('linkedin', { scope: ['r_liteprofile', 'r_basicprofile'],session: false})(req, res, next);
 }, );
 
-router.get('/linkedin/callback', passportHelper.passport.authenticate('linkedin', { session: false }), (req, res) => {
+router.get('/linkedin/callback', passportHelper.passport.authenticate('linkedin', async (error:any, user:any,info:any) => {
+console.log(error,user,info);
+
+}), (req, res) => {
 
   const user = req.user as any as IUser&{_id:string};
   console.log(user);

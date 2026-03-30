@@ -30,6 +30,7 @@ const createPostZodSchema = z.object({
     if(Number(body.min_salary) > Number(body.max_salary)) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'min_salary must be less than max_salary');
     }
+    return true;
 })
 
 const updatePostZodSchema = z.object({
