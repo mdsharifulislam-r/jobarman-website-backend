@@ -9,13 +9,13 @@ import { PostValidations } from './post.validation';
 const router = express.Router();
 
 router.route("/")
-    .post(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.createPostZodSchema), PostController.createPost)
+    .post(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.createPostZodSchema as any), PostController.createPost)
 
 router.route("/feed")
     .get(PostController.getPostFeed)
 
 router.route("/recent-posts")
-    .get( PostController.getRecentsPosts)
+    .get(PostController.getRecentsPosts)
 router.route("/recommended")
     .get(auth(), PostController.getRecommendedPosts)
 
@@ -24,6 +24,9 @@ router.route("/feed/user")
 
 router.route("/insights/:id")
     .get(auth(USER_ROLES.RECRUITER), PostController.getPostInsigts)
+
+router.route('/match-percentage/:id')
+    .get(auth(), PostController.getJobMatchPercentances)
 
 router.route("/:id")
     .patch(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.updatePostZodSchema), PostController.updatePost)

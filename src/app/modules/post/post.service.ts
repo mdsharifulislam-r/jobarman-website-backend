@@ -19,7 +19,7 @@ import { sendNotifications } from '../../../helpers/notificationsHelper';
 import { IQuery } from '../../../helpers/thirdPartyQueryBuilder';
 import { mapHelper } from '../../../helpers/mapHelper';
 import { Category } from '../category/category.model';
-import { UsersInfoResponse } from '../../../helpers/aiHelper';
+import { AIHelper, UsersInfoResponse } from '../../../helpers/aiHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { Subscription } from '../subscription/subscription.model';
@@ -599,6 +599,17 @@ try {
   }
 }
 
+const getJobMatchPercentances = async (userId: string,postId: string) => {
+  const cache = await RedisHelper.redisGet(`job_match_percentage:${userId}:${postId}`);
+  if (cache) {
+    console.log('from cache');
+    return cache;
+  }
+  const percentage = await AIHelper.getJobMatchPercentances(userId,postId);
+  await RedisHelper.redisSet(`job_match_percentage:${userId}:${postId}`, percentage);
+  return percentage;
+}
+
 export const PostServices = {
   createPostIntoDB,
   updatePostToDB,
@@ -610,5 +621,6 @@ export const PostServices = {
   recentPostsFromDB,
   getSinglePostDetails,
   bulkInsertPostIntoDB,
-  sendEmailForMathchedPosts
+  sendEmailForMathchedPosts,
+  getJobMatchPercentances
 };

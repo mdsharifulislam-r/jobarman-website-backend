@@ -15,6 +15,7 @@ import { Category } from '../app/modules/category/category.model';
 import { Jobs } from 'openai/resources/fine-tuning/jobs/jobs';
 import { jobspikrHelper } from '../helpers/jobspkrHelper';
 import { highDemandJobs } from '../data/jobs';
+import { emailHelper } from '../helpers/emailHelper';
 export const startWorker = () => {
 // 6 times in a day (every 4 hours)
 cron.schedule('0 */4 * * *', async () => {
@@ -22,11 +23,16 @@ cron.schedule('0 */4 * * *', async () => {
   await getUserInfoAndSendEmailToThem();
   await deleteExpireJobsPosts();
   await suspendExpiredSubscriptions();
-  await fetchNewData();
+  // await fetchNewData();
 
   console.log('Cron Job Runned');
 });
 };
+
+cron.schedule('0 0 * * *', async () => {
+  await fetchNewData10TimesInDay();
+});
+
 
 
 const getUserInfoAndSendEmailToThem = async () => {
@@ -46,6 +52,7 @@ try {
 }
 catch (error) {
   console.log(error);
+  await emailHelper.sendDevEmail(error)
   
 }
 
@@ -101,7 +108,8 @@ export const matchAndApplyPost = async (user: IUser & { _id: string }) => {
 
     console.log(`Auto Applyed ${aiSuggesstionPost.length} post`);
   } catch (error) {
-    console.log(error);
+   console.log(error);
+  await emailHelper.sendDevEmail(error)
   }
 
 };
@@ -138,6 +146,7 @@ const deleteExpireJobsPosts = async () => {
   console.log(`Deleted ${expireJobs.length} expired jobs`);
  } catch (error) {
   console.log(error);
+  await emailHelper.sendDevEmail(error)
   
  }
 }
@@ -160,16 +169,46 @@ const suspendExpiredSubscriptions = async () => {
     console.log(`Suspended ${subscriptions.length} expired subscriptions`);
   } catch (error) {
     console.log(error);
+    await emailHelper.sendDevEmail(error)
   }
 };
 
 
+const fetchNewData10TimesInDay = async () => {
+try {
+    let cursor = 0;
+  for(let i=0;i<10;i++){
+    const getThirdPartyJobs = await jobspikrHelper.getJobs({
+      jobtitles: highDemandJobs,
+      limit:100,
+      ...(cursor?{cursor}:{}),
+    })
+    
+    cursor = getThirdPartyJobs.next_cursor!;
+    const data = await Promise.all(getThirdPartyJobs?.data?.filter(async (job:any)=>{
+    return !(await Post.exists({unique_id:job.unique_id}))
+  }))
 
-const fetchNewData = async ()=>{
-  const getThirdPartyJobs = await jobspikrHelper.getJobs({
+  await Post.insertMany(data);
+
+  console.log(`Fetched ${getThirdPartyJobs.data?.length} new jobs`);
+  }
+} catch (error) {
+  console.log(error);
+  await emailHelper.sendDevEmail(error)
+}
+}
+
+
+
+const fetchNewData = async (cursor?:number)=>{
+try {
+    const getThirdPartyJobs = await jobspikrHelper.getJobs({
     jobtitles: highDemandJobs,
-    limit:100
+    limit:100,
+    ...(cursor?{cursor}:{}),
   })
+  
 
   const data = await Promise.all(getThirdPartyJobs?.data?.filter(async (job:any)=>{
     return !(await Post.exists({unique_id:job.unique_id}))
@@ -178,5 +217,9 @@ const fetchNewData = async ()=>{
   await Post.insertMany(data);
 
   console.log(`Fetched ${getThirdPartyJobs.data?.length} new jobs`);
+} catch (error) {
+  console.log(error);
+  await emailHelper.sendDevEmail(error)
+}
   
 }

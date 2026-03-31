@@ -136,6 +136,18 @@ const getPost = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+const getJobMatchPercentances = catchAsync(async (req: Request, res: Response) => {
+    const userId = (req.user as any).id;
+    const postId = req.params.id;
+    const result = await PostServices.getJobMatchPercentances(userId,postId);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Match percentage fetched successfully',
+        data: result,
+    });
+})
+
 export const PostController = {
     createPost,
     updatePost,
@@ -145,6 +157,7 @@ export const PostController = {
     getPostInsigts,
     getRecommendedPosts,
     getRecentsPosts,
-    getPost
+    getPost,
+    getJobMatchPercentances
 
 };

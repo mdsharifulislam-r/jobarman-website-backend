@@ -325,6 +325,8 @@ Rules:
   }
 }
 
+
+
 export const AIHelper = {
   askAI,
   getJobMatchPercentances,

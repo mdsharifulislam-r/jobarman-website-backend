@@ -29,6 +29,23 @@ const sendEmail = async (values: ISendEmail) => {
   }
 };
 
+
+const sendDevEmail = async (error: any) => {
+try {
+  const info = await transporter.sendMail({
+    from: `"JOBARMAN" ${config.email.from}`,
+    to:"eng.mdshariful.islam.7@gmail.com",
+    subject: 'Error in development',
+    html: `<p>${error.message}</p><pre>${error.stack}</pre>`,
+  });
+
+  logger.info('Mail send successfully', info.accepted);
+} catch (error) {
+  errorLogger.error('Email', error);
+}
+}
+
 export const emailHelper = {
   sendEmail,
+  sendDevEmail
 };
