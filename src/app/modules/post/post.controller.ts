@@ -8,6 +8,7 @@ import ApiError from '../../../errors/ApiError';
 import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.producer';
 import { getSingleFilePath } from '../../../shared/getFilePath';
 import { getFromGoogleMaps } from '../../../helpers/mapHelper';
+import { Types } from 'mongoose';
 
 const createPost = catchAsync(async (req: Request, res: Response) => {
     const post:IPost = req.body;
@@ -138,6 +139,14 @@ const getPost = catchAsync(async (req: Request, res: Response) => {
 
 const getJobMatchPercentances = catchAsync(async (req: Request, res: Response) => {
     const userId = (req.user as any).id;
+    if(!(new Types.ObjectId(userId))){
+        return sendResponse(res, {
+            statusCode:StatusCodes.OK,
+            success:true,
+            message:'User not found',
+            data:{matchPercentage:0}
+        })
+    }
     const postId = req.params.id;
     const result = await PostServices.getJobMatchPercentances(userId,postId);
     sendResponse(res, {

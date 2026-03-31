@@ -5,6 +5,7 @@ import { USER_ROLES } from '../../../enums/user';
 import fileUploadHandler from '../../middlewares/fileUploadHandler';
 import validateRequest from '../../middlewares/validateRequest';
 import { PostValidations } from './post.validation';
+import tempAuth from '../../middlewares/tempAuth';
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.route("/insights/:id")
     .get(auth(USER_ROLES.RECRUITER), PostController.getPostInsigts)
 
 router.route('/match-percentage/:id')
-    .get(auth(), PostController.getJobMatchPercentances)
+    .get(tempAuth(), PostController.getJobMatchPercentances)
 
 router.route("/:id")
     .patch(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.updatePostZodSchema), PostController.updatePost)
