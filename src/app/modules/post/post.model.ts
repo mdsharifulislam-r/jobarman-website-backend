@@ -54,7 +54,7 @@ const postSchema = new Schema<IPost, PostModel>({
   prevImage: { type: String, required: false },
   is_repost: { type: Boolean, default: false },
   prevPostId: { type: Types.ObjectId, required: false, ref: 'Post' },
-  unique_id: { type: String, required: false},
+  unique_id: { type: String},
   cursor: { type: Number, default: 0 },
   salary_recurring: { type: String, required: false },
   work_mode: { type: String, required: false },

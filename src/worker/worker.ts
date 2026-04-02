@@ -38,7 +38,7 @@ cron.schedule('0 0 * * *', async () => {
 const getUserInfoAndSendEmailToThem = async () => {
   // only for those user those are get job update more than 1 day ago
 try {
-  const users = await User.find({role:USER_ROLES.EMPLOYEE,verified:true,status:'active',subscription:{$exists:true}},{designation:1,educations:1,workExperiences:1,skills:1}).sort({createdAt:-1}).limit(1).lean()
+  const users = await User.find({role:USER_ROLES.EMPLOYEE,verified:true,status:'active',subscription:{$exists:true}},{designation:1,educations:1,workExperiences:1,skills:1}).sort({createdAt:-1}).limit(50).lean()
   if(users.length===0){
     return;
   }
@@ -77,6 +77,7 @@ export const matchAndApplyPost = async (user: IUser & { _id: string }) => {
       _id: { $nin: postIds },
       deadline: { $gte: new Date() },
       status: 'active',
+      is_third_party_job:{ $ne:true }
     })
       .lean();
     post = post.map(post => ({
