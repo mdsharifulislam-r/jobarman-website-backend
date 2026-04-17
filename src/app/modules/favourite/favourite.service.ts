@@ -21,7 +21,7 @@ const getFavouritesFromDB = async (user:JwtPayload,query:Record<string,any>) => 
         favouriteQuery.getPaginationInfo()
     ])
     return {
-        data:favourites,
+        data:favourites.filter(favourite=>favourite.post),
         pagination
     }
 }
