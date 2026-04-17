@@ -16,6 +16,7 @@ import { Jobs } from 'openai/resources/fine-tuning/jobs/jobs';
 import { jobspikrHelper } from '../helpers/jobspkrHelper';
 import { highDemandJobs } from '../data/jobs';
 import { emailHelper } from '../helpers/emailHelper';
+import { Favourite } from '../app/modules/favourite/favourite.model';
 export const startWorker = () => {
 // 6 times in a day (every 4 hours)
 cron.schedule('0 */4 * * *', async () => {
@@ -136,6 +137,8 @@ const deleteExpireJobsPosts = async () => {
         company_address:job.location||'',
       });
     }
+
+    await Favourite.deleteMany({ post: job._id });
 
     await Post.deleteOne({ _id: job._id });
     

@@ -15,7 +15,7 @@ const createFavouriteInDB = async (favourite: Partial<IFavourite>): Promise<IFav
 
 const getFavouritesFromDB = async (user:JwtPayload,query:Record<string,any>) => {
     const {id} = user;
-    const favouriteQuery= new QueryBuilder(Favourite.find({user:id}),query).paginate().sort()
+    const favouriteQuery= new QueryBuilder(Favourite.find({user:id,post:{$exists:true}}),query).paginate().sort()
     const [favourites,pagination] = await Promise.all([
         favouriteQuery.modelQuery.populate('post').exec(),
         favouriteQuery.getPaginationInfo()
