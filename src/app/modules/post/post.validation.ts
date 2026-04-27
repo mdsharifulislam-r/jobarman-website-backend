@@ -8,7 +8,7 @@ const createPostZodSchema = z
     body: z.object({
       image: z.any(),
       title: z.string().min(2, 'Title too short'),
-      description: z.string(),
+      description: z.string().min(10, 'Description too short'),
       category: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId'),
       job_type: z.nativeEnum(JOB_TYPE),
       job_level: z.nativeEnum(JOB_LEVEL),

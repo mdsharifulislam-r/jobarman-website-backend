@@ -12,7 +12,7 @@ const createSpotlightZodSchema = z.object({
         pricing: z.string().min(2, { message: 'Pricing must be at least 2 characters' }),
         start_date: z.string(),
         end_date: z.string().refine((date) => !isNaN(Date.parse(date)), { message: 'End date must be a valid date' }).refine((endDate: string) => {
-            const now = new Date();
+            const now = new Date(new Date().setHours(0, 0, 0, 0));
             const end = new Date(endDate);
             return end >= now;
         }, { message: 'End date must be greater than or equal to current date' }),
