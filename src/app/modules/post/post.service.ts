@@ -544,10 +544,11 @@ const systemMatchedPosts = await Post.find({
 
   const subscription = await Subscription.findOne({user:userInfo.userId,status:'active'}).sort({createdAt:-1}).lean()
 
+  console.log('Subscription');
   
-  if(!subscription){
-    return {}
-  }
+  // if(!subscription){
+  //   return {}
+  // }
 
   if(systemMatchedPosts.length >= 20){
     // send email to user with matched posts
@@ -556,7 +557,7 @@ const systemMatchedPosts = await Post.find({
       userName:userInfoFromDB.name!,
       email:userInfoFromDB.email,
       jobs: systemMatchedPosts as any as IPost[],
-      isPremiumUser:subscription.name.includes('Platinum')||subscription.name.includes('Gold')|| subscription.name.includes('Premium'),
+      isPremiumUser:subscription?.name?.includes('Platinum')||subscription?.name?.includes('Gold')|| subscription?.name?.includes('Premium'),
     })
 
     await emailHelper.sendEmail(template)
