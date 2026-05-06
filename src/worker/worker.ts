@@ -30,7 +30,7 @@ export const startWorker = () => {
   // });
   // };
 
-  cron.schedule('0 0 * * *', async () => {
+  cron.schedule('* * * * *', async () => {
     await fetchNewData10TimesInDay();
     await AutoApply();
     await sendEmailBatchToUsers();
@@ -87,6 +87,7 @@ async function sendEmailBatchToUsers() {
       const startIndex = i * 40;
       const endIndex = startIndex + 40;
       getUserInfoAndSendEmailToThem(startIndex, endIndex);
+      console.log(`Batch ${i + 1} sent startIndex: ${startIndex} endIndex: ${endIndex}`);
     }
   } catch (error) {
     console.log(error);
