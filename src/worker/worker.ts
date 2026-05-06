@@ -30,7 +30,7 @@ export const startWorker = () => {
   // });
   // };
 
-  cron.schedule('* * * * *', async () => {
+  cron.schedule('0 0 * * *', async () => {
     await fetchNewData10TimesInDay();
     await AutoApply();
     await sendEmailBatchToUsers();
