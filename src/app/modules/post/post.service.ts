@@ -194,7 +194,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
       'tags',
       'location',
     ])
-    .search(['title', 'description', 'location']);
+    .search(['title', 'location']);
   const [posts, pagination] = await Promise.all([
     postQuery.modelQuery.populate([
       {
@@ -270,7 +270,7 @@ const getPostsFromDB = async (query: Record<string, any>, user: JwtPayload) => {
     .paginate()
     .sort()
     .filter(['is_deleted','downloadType',"shortForm"])
-    .search(['title', 'description']);
+    .search(['title']);
   const [posts, pagination] = await Promise.all([
     postQuery.modelQuery.populate('recruiter', 'name email image').exec(),
     postQuery.getPaginationInfo(),
