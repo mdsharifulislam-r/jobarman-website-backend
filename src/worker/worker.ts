@@ -31,11 +31,11 @@ export const startWorker = () => {
   // };
 
   cron.schedule('0 0 * * *', async () => {
-    await fetchNewData10TimesInDay();
-    await AutoApply();
-    await sendEmailBatchToUsers();
-    await deleteExpireJobsPosts();
-    await suspendExpiredSubscriptions();
+     fetchNewData10TimesInDay();
+     AutoApply();
+     sendEmailBatchToUsers();
+     deleteExpireJobsPosts();
+     suspendExpiredSubscriptions();
     // await fetchNewData();
 
     console.log('Cron Job Runned');
