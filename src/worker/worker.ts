@@ -31,16 +31,19 @@ export const startWorker = () => {
   // };
 
   cron.schedule('0 0 * * *', async () => {
-     fetchNewData10TimesInDay();
-     AutoApply();
-     sendEmailBatchToUsers();
-     deleteExpireJobsPosts();
-     suspendExpiredSubscriptions();
-    // await fetchNewData();
+    AutoApply();
+    sendEmailBatchToUsers();
+    deleteExpireJobsPosts();
+    suspendExpiredSubscriptions();
+fetchNewData10TimesInDay()
 
+    // await fetchNewData();
+    
     console.log('Cron Job Runned');
   });
+
 };
+
 
 const getUserInfoAndSendEmailToThem = async (
   startIndex: number,
@@ -251,6 +254,7 @@ const suspendExpiredSubscriptions = async () => {
 const fetchNewData10TimesInDay = async () => {
   try {
     let cursor = 0;
+
     for (let i = 0; i < 10; i++) {
       const getThirdPartyJobs = await jobspikrHelper.getJobs({
         jobtitles: highDemandJobs,
@@ -259,15 +263,24 @@ const fetchNewData10TimesInDay = async () => {
       });
 
       cursor = getThirdPartyJobs.next_cursor!;
-      const data = await Promise.all(
-        getThirdPartyJobs?.data?.filter(async (job: any) => {
-          return !(await Post.exists({ unique_id: job.unique_id }));
+
+      const filteredJobs = await Promise.all(
+        getThirdPartyJobs.data.map(async (job: any) => {
+          const exists = await Post.exists({
+            unique_id: job.unique_id,
+          });
+
+          return exists ? null : job;
         }),
       );
 
-      await Post.insertMany(data);
+      const data = filteredJobs.filter(Boolean);
 
-      console.log(`Fetched ${getThirdPartyJobs.data?.length} new jobs`);
+      if (data.length) {
+        await Post.insertMany(data);
+      }
+
+      console.log(`Fetched ${data.length} new jobs`);
     }
   } catch (error) {
     console.log(error);
@@ -297,3 +310,4 @@ const fetchNewData = async (cursor?: number) => {
     await emailHelper.sendDevEmail(error);
   }
 };
+

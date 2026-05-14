@@ -13,7 +13,6 @@ const postSchema = new Schema<IPost, PostModel>({
   category: { type: Schema.Types.ObjectId, ref: 'Category' },
   job_type: {
     type: String,
-    required: false,
   },
   job_level: {
     type: String,
