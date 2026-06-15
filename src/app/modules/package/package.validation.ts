@@ -3,7 +3,7 @@ import { PACKAGE_TYPE } from '../../../enums/package';
 export const createPackageZodSchema = z.object({
   body: z.object({
     name: z.nativeEnum(PACKAGE_TYPE),
-    price: z.number({ required_error: 'Price is required' }),
+    price: z.number({ required_error: 'Price is required' }).min(0),
     for: z.enum(['employee', 'recruiter'], {
       required_error: 'For is required',
     }),
