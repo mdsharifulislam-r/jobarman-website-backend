@@ -18,6 +18,7 @@ export default {
     port: process.env.EMAIL_PORT,
     host: process.env.EMAIL_HOST,
     pass: process.env.EMAIL_PASS,
+    brevo_api_key: process.env.BREVO_API_KEY,
   },
   super_admin: {
     email: process.env.SUPER_ADMIN_EMAIL,

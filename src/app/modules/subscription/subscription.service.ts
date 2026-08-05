@@ -309,6 +309,9 @@ const renewSubscription = async (user: JwtPayload) => {
 
 };
 
+
+
+
 export const SubscriptionService = {
   verifyAppleReceipt,
   getSubscriptionByUser,
@@ -319,5 +322,6 @@ export const SubscriptionService = {
   subscriptionUsers,
   getSubscriptionDetailsById,
   transactionOfSubscriptionByOtp,
-  renewSubscription
+  renewSubscription,
+
 };

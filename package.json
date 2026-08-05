@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.19.1",
+    "@getbrevo/brevo": "^6.0.2",
     "@toon-format/toon": "^1.0.0",
     "axios": "^1.13.2",
     "bcrypt": "^5.1.1",
