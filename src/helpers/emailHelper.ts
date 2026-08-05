@@ -51,6 +51,8 @@ const sendDevEmail = async (error: any) => {
       html: `<p>${error.message}</p><pre>${error.stack}</pre>`,
     });
 
+    //sdsd
+
   } catch (error) {
     errorLogger.error('Email', error);
   }
