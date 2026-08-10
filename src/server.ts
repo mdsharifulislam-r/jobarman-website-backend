@@ -25,7 +25,7 @@ async function main() {
     await seedSuperAdmin();
     startWorker()
     // await loadConsumer() if you using kafka
-  loadConsumer();
+    loadConsumer();
     const port =
       typeof config.port === 'number' ? config.port : Number(config.port);
 
@@ -46,6 +46,7 @@ async function main() {
     //@ts-ignore
     global.io = io;
   } catch (error) {
+    console.log(error)
     errorLogger.error(colors.red('🤢 Failed to connect Database'));
   }
 
