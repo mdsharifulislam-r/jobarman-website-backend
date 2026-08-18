@@ -11,28 +11,31 @@ import { handleStripeWebhook } from './webhooks/handleStripeWebhook';
 import ApiError from './errors/ApiError';
 import passportHelper from './tools/passport/passport';
 import passport from 'passport';
+import dns from "dns"
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 const app = express();
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000,
-    standardHeaders: true,
-    legacyHeaders: false,
-    keyGenerator: (req, res) => {
-        if (!req.clientIp) {
-            throw new ApiError(StatusCodes.BAD_REQUEST, 'Unable to determine client IP!');
-        }
-        return req.clientIp;
-    },
-    handler: (req, res, next, options) => {
-        throw new ApiError(options?.statusCode, `Rate limit exceeded. Try again in ${options.windowMs / 60000} minutes.`);
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req, res) => {
+    if (!req.clientIp) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Unable to determine client IP!');
     }
+    return req.clientIp;
+  },
+  handler: (req, res, next, options) => {
+    throw new ApiError(options?.statusCode, `Rate limit exceeded. Try again in ${options.windowMs / 60000} minutes.`);
+  }
 });
 
 app.use(session({
-    secret: "your_secret_key",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // Secure should be true in production with HTTPS
+  secret: "your_secret_key",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Secure should be true in production with HTTPS
 }));
 app.use(requestIp.mw());
 app.use(limiter);
@@ -44,7 +47,7 @@ app.use(limiter);
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
 
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }),handleStripeWebhook )
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook)
 
 //body parser
 app.use(cors());
