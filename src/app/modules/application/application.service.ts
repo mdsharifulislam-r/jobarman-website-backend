@@ -26,6 +26,7 @@ import { subscriptionHelper } from '../subscription/subscription.helper';
 import { applicationExtractorPromptMaker } from './application.constants';
 
 const createApplicationIntoDB = async (data: IApplication) => {
+  console.log(data);
   const applicationk = await Application.create(data);
 
   const application = await Application.findById(applicationk._id).populate([

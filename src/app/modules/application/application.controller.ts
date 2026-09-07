@@ -35,6 +35,7 @@ const createApplication = catchAsync(async (req: Request, res: Response) => {
     applicationData.recruiter = post.recruiter;
     applicationData.resume = resume!;
     applicationData.other_documents = other_documents!;
+    
     await kafkaProducer.sendMessage("application", {type:"create",data:applicationData});
     sendResponse(res, {
         statusCode: StatusCodes.OK,
