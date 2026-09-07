@@ -57,6 +57,7 @@ export interface IResumeExtractedData {
   designation?: string;
   bio?: string;
   assumptions_designations?: string[];
+  keywords?: string[];
   educations?: IEducation[];
   workExperiences?: IWorkExperience[];
   skills?: string[];

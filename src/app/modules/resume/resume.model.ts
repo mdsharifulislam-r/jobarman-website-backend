@@ -105,6 +105,7 @@ skills: {
   type:[String]
 },
 job_level: { type: String, enum: ["ENTRY_LEVEL", "MID_LEVEL", "SENIOR_LEVEL"], required: false },
+keywords: { type: [String], required: false },
 },
 { timestamps: true });
 
