@@ -259,12 +259,12 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   if(query?.searchTerm){
     if(elasticQuery?.jobtitles?.length){
       elasticQuery.jobtitles = [...elasticQuery.jobtitles,query.searchTerm]
-    }else{
+    }
+  }else{
       if(userResumeExtractData?.assumptions_designations?.length){
-        elasticQuery.jobtitles = [...userResumeExtractData.assumptions_designations,query.searchTerm]
+        elasticQuery.jobtitles = [...userResumeExtractData.assumptions_designations]
       }
     }
-  }
 
   // third party posts 
 
