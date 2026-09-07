@@ -77,12 +77,12 @@ const deletePostFromDB = async (id: string): Promise<IPost | null> => {
 };
 
 const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
-  // const cache = await RedisHelper.redisGet(`post_feed:${user?.id}`, query);
-  // if (cache) {
-  //   console.log('from cache');
+  const cache = await RedisHelper.redisGet(`post_feed:${user?.id}`, query);
+  if (cache) {
+    console.log('from cache');
 
-  //   return cache;
-  // }
+    return cache;
+  }
   const userResumeExtractData = await ResumeExtractedData.findOne({user:user?.id}).sort({createdAt:-1}).lean()
   console.log("userResumeExtractData",userResumeExtractData)
   const limit = Number(query.limit) || 10;
@@ -92,13 +92,13 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   } as Record<string, any>;
 
   let elasticQuery = {} as IQuery
-  // if (query.minPrice) {
-  //   if(query.minPrice == 1){
-  //     query.minPrice = 0
-  //   }
-  //   initalQuery.min_salary = { $gte: query.minPrice };
-  //   elasticQuery.minSalary = query.minPrice
-  // }
+  if (query.minPrice) {
+    if(query.minPrice == 1){
+      query.minPrice = 0
+    }
+    initalQuery.min_salary = { $gte: query.minPrice };
+    elasticQuery.minSalary = query.minPrice
+  }
 
   if(query.location){
     initalQuery.location = { $regex: query.location, $options: 'i' };
@@ -116,10 +116,10 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     initalQuery.required_skills = { $in: array };
     elasticQuery.skill = array
   }else{
-    // if(userResumeExtractData?.skills?.length){
-    //   initalQuery.required_skills = { $in: userResumeExtractData.skills };
-    //   elasticQuery.skill = userResumeExtractData.skills
-    // }
+    if(userResumeExtractData?.skills?.length){
+      initalQuery.required_skills = { $in: userResumeExtractData.skills };
+      elasticQuery.skill = userResumeExtractData.skills
+    }
   }
 
   if(query.dateLimit){
