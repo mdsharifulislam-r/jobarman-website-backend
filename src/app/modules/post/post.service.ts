@@ -83,7 +83,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
     return cache;
   }
-  console.log(user)
+  console.log("Sesssion User",user)
   const userResumeExtractData = await ResumeExtractedData.findOne({user:user?.id}).sort({createdAt:-1}).lean()
   const limit = Number(query.limit) || 10;
   const initalQuery = {
