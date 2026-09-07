@@ -77,7 +77,7 @@ const deletePostFromDB = async (id: string): Promise<IPost | null> => {
 };
 
 const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
-  const cache = await RedisHelper.redisGet(`post_feed`, query);
+  const cache = await RedisHelper.redisGet(`post_feed:${user?.id}`, query);
   if (cache) {
     console.log('from cache');
 
@@ -184,7 +184,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     }
     const {data,pagination} = await PostHelper.getDataByRange(user,initalQuery,query);
 
-    await RedisHelper.redisSet(`post_feed`, {data,pagination}, query);
+    await RedisHelper.redisSet(`post_feed:${user?.id}`, {data,pagination}, query);
     return {data,pagination};
   }
 
@@ -260,7 +260,9 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     if(elasticQuery?.jobtitles?.length){
       elasticQuery.jobtitles = [...elasticQuery.jobtitles,query.searchTerm]
     }else{
-      elasticQuery.jobtitles = [query.searchTerm]
+      if(userResumeExtractData?.assumptions_designations?.length){
+        elasticQuery.jobtitles = [...userResumeExtractData.assumptions_designations,query.searchTerm]
+      }
     }
   }
 
@@ -274,7 +276,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     data.pagination.cursor = thirdPosts?.cursor;
   }
 
-  await RedisHelper.redisSet(`post_feed`, data, query);
+  await RedisHelper.redisSet(`post_feed:${user?.id}`, data, query);
   return data;
 };
 

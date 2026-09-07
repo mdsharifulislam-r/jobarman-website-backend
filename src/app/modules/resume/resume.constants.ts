@@ -6,6 +6,7 @@ export const demoRsumeExtractedData = {
   "address": "Dhaka",
   "linkedin": "https://linkedin.com/in/johndoe",
   "designation": "Software Engineer",
+  "assumptions_designations": ["Software Engineer", "Full-stack Developer", "Backend Developer","Senior Software Engineer"],
   "bio": "Full-stack developer with 5 years of experience.",
   "educations": [
     {
@@ -54,6 +55,7 @@ IMPORTANT:
 - Never copy values from the OUTPUT SCHEMA.
 - Extract the actual information from the RESUME DATA.
 - Return the extracted information using exactly the same field names and structure.
+- assume realistic designations based on the candidate's experience and skills.
 - Extract all available education, work experience, skills, and profile information.
 - If any information is missing from the resume, make a reasonable and realistic assumption based on the available context.
 - Do NOT leave fields empty if a reasonable assumption can be made.
@@ -101,6 +103,7 @@ EXTRACTION RULES:
 - Convert dates to YYYY-MM-DD format.
 - Dont give any string value for date_of_birth or any dates like startDate and endDate if it is not available in the resume.at this can left null.
 - Return skills as an array of individual strings.
+- assume realistic designations based on the candidate's experience and skills.
 - Job level should be one of the following: "ENTRY_LEVEL", "MID_LEVEL", "SENIOR_LEVEL".
 - Keep the exact field names and structure from the output schema.
 - Do not add additional fields.

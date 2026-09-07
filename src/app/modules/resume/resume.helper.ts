@@ -1,5 +1,6 @@
 import { AIHelper } from "../../../helpers/aiHelper";
 import { openAiFileUpload } from "../../../helpers/openAiHelper";
+import { RedisHelper } from "../../../tools/redis/redis.helper";
 import { User } from "../user/user.model";
 import { resumeExtractorPromptMaker } from "./resume.constants";
 import { IResume } from "./resume.interface";
@@ -21,6 +22,7 @@ const extractResumeData =async (resume:IResume)=>{
         await User.findByIdAndUpdate(resume.user,{
             ...json,
         })
+        await RedisHelper.keyDelete(`post_feed:${resume.user}:*`)
 
     } catch (error) {
         console.error("Error extracting resume data:", error);
