@@ -88,7 +88,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   const limit = Number(query.limit) || 10;
   const initalQuery = {
     is_deleted: false,
-    status: { $ne: 'closed' },
+    status:'active',
   } as Record<string, any>;
 
   let elasticQuery = {} as IQuery
@@ -116,10 +116,10 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     initalQuery.required_skills = { $in: array };
     elasticQuery.skill = array
   }else{
-    if(userResumeExtractData?.skills?.length){
-      initalQuery.required_skills = { $in: userResumeExtractData.skills };
-      elasticQuery.skill = userResumeExtractData.skills
-    }
+    // if(userResumeExtractData?.skills?.length){
+    //   initalQuery.required_skills = { $in: userResumeExtractData.skills };
+    //   elasticQuery.skill = userResumeExtractData.skills
+    // }
   }
 
   if(query.dateLimit){
