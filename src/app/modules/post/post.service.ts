@@ -77,12 +77,12 @@ const deletePostFromDB = async (id: string): Promise<IPost | null> => {
 };
 
 const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
-  const cache = await RedisHelper.redisGet(`post_feed:${user?.id}`, query);
-  if (cache) {
-    console.log('from cache');
+  // const cache = await RedisHelper.redisGet(`post_feed:${user?.id}`, query);
+  // if (cache) {
+  //   console.log('from cache');
 
-    return cache;
-  }
+  //   return cache;
+  // }
   const userResumeExtractData = await ResumeExtractedData.findOne({user:user?.id}).sort({createdAt:-1}).lean()
   console.log("userResumeExtractData",userResumeExtractData)
   const limit = Number(query.limit) || 10;
@@ -263,7 +263,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     }
   }else{
       if(userResumeExtractData?.assumptions_designations?.length){
-        elasticQuery.jobtitles = [...userResumeExtractData.assumptions_designations]
+        elasticQuery.jobtitles = [userResumeExtractData.designation]
       }
     }
 
