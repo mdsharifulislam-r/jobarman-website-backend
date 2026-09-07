@@ -92,13 +92,13 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   } as Record<string, any>;
 
   let elasticQuery = {} as IQuery
-  if (query.minPrice) {
-    if(query.minPrice == 1){
-      query.minPrice = 0
-    }
-    initalQuery.min_salary = { $gte: query.minPrice };
-    elasticQuery.minSalary = query.minPrice
-  }
+  // if (query.minPrice) {
+  //   if(query.minPrice == 1){
+  //     query.minPrice = 0
+  //   }
+  //   initalQuery.min_salary = { $gte: query.minPrice };
+  //   elasticQuery.minSalary = query.minPrice
+  // }
 
   if(query.location){
     initalQuery.location = { $regex: query.location, $options: 'i' };
@@ -128,10 +128,10 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     initalQuery.createdAt = { $gte: date };
   }
 
-  if (query.maxPrice) {
-    initalQuery.max_salary = { $lte: query.maxPrice };
-    elasticQuery.maxSalary = query.maxPrice
-  }
+  // if (query.maxPrice) {
+  //   initalQuery.max_salary = { $lte: query.maxPrice };
+  //   elasticQuery.maxSalary = query.maxPrice
+  // }
 
   if (query.startDate) {
     initalQuery.createdAt = { $gte: query.startDate };
