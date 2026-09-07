@@ -190,7 +190,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
   if(!query?.searchTerm){
     if(userResumeExtractData?.designation){
-      query.searchTerm = userResumeExtractData.designation
+      initalQuery.searchTerm = userResumeExtractData.designation
     }
   }
 

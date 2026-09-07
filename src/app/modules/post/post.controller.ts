@@ -138,7 +138,7 @@ const getPost = catchAsync(async (req: Request, res: Response) => {
 })
 
 const getJobMatchPercentances = catchAsync(async (req: Request, res: Response) => {
-    const userId = (req.user as any).id;
+    const userId = (req.user as any)?.id;
     if(!(new Types.ObjectId(userId))){
         return sendResponse(res, {
             statusCode:StatusCodes.OK,
