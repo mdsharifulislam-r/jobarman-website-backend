@@ -229,7 +229,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     postQuery.getPaginationInfo(),
   ]);
 
-  // console.log(posts);
+  console.log(posts);
   
 
 
