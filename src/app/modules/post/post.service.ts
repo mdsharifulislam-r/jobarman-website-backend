@@ -116,10 +116,10 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     initalQuery.required_skills = { $in: array };
     elasticQuery.skill = array
   }else{
-    if(userResumeExtractData?.skills?.length){
-      initalQuery.required_skills = { $in: userResumeExtractData.skills };
-      elasticQuery.skill = userResumeExtractData.skills
-    }
+    // if(userResumeExtractData?.skills?.length){
+    //   initalQuery.required_skills = { $in: userResumeExtractData.skills };
+    //   elasticQuery.skill = userResumeExtractData.skills
+    // }
   }
 
   if(query.dateLimit){
@@ -128,10 +128,10 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     initalQuery.createdAt = { $gte: date };
   }
 
-  // if (query.maxPrice) {
-  //   initalQuery.max_salary = { $lte: query.maxPrice };
-  //   elasticQuery.maxSalary = query.maxPrice
-  // }
+  if (query.maxPrice) {
+    initalQuery.max_salary = { $lte: query.maxPrice };
+    elasticQuery.maxSalary = query.maxPrice
+  }
 
   if (query.startDate) {
     initalQuery.createdAt = { $gte: query.startDate };
