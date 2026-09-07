@@ -27,7 +27,7 @@ import { applicationExtractorPromptMaker } from './application.constants';
 
 const createApplicationIntoDB = async (data: IApplication) => {
   console.log(data);
-  const application = (await Application.create(data)).populate('post user')
+  const application =await (await Application.create(data)).populate('post user')
   console.log(application);
   sendNotifications({
     title: `New application for ${((application as any)?.post as any)?.title} has been submitted!`,
