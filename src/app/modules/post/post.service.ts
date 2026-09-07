@@ -161,12 +161,13 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     const array = query.job_level.split(',');
     initalQuery.job_level = { $in: array };
     elasticQuery.jobTypes = array
-  }else{
-    if(userResumeExtractData?.job_level){
-      initalQuery.job_level = { $in: [userResumeExtractData.job_level] };
-      elasticQuery.jobTypes = [userResumeExtractData.job_level]
-    }
   }
+  // else{
+  //   if(userResumeExtractData?.job_level){
+  //     initalQuery.job_level = { $in: [userResumeExtractData.job_level] };
+  //     elasticQuery.jobTypes = [userResumeExtractData.job_level]
+  //   }
+  // }
 
   if (query.experience_level) {
     const array = query.experience_level.split(',');
