@@ -23,6 +23,7 @@ import { emailHelper } from '../../../helpers/emailHelper';
 import { sendNotifications } from '../../../helpers/notificationsHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
 import { subscriptionHelper } from '../subscription/subscription.helper';
+import { applicationExtractorPromptMaker } from './application.constants';
 
 const createApplicationIntoDB = async (data: IApplication) => {
   const applicationk = (await Application.create(data))
@@ -413,12 +414,15 @@ const autoApplyForJobPosts = async (
     // await new Promise((resolve) => setTimeout(resolve, 3000));
      const subscriptionBasedLimit = await subscriptionHelper.isPremiumUser(user.id,"bronze")?10:(await subscriptionHelper.isPremiumUser(user.id,"gold") || await subscriptionHelper.isPremiumUser(user.id,"silver"))?1000000:0
     const aiFile = await openAiFileUpload(cvPath);
-    const userProfile = await User.findById(user.id);
-    const skills = userProfile?.skills || [];
+    const prompt = applicationExtractorPromptMaker(cvPath);
+    const cvInfo = await AIHelper.askAI(prompt, aiFile!);
+
+    const skills = cvInfo?.skills;
+    const designations = cvInfo?.designation;
     const applications = await Application.find({ user: user.id }).lean();
     const similerpost = (
       await Post.find({
-        title:{ $regex: new RegExp(title, 'i') },
+        title:{ $regex: designations, $options: 'i' },
         required_skills: { $in: skills },
         deadline: { $gte: new Date() },
         status: 'active',
