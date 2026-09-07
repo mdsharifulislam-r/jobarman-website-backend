@@ -1,5 +1,6 @@
 import { Model, Types } from 'mongoose';
 import { IEducation, IWorkExperience } from '../user/user.interface';
+import { JOB_LEVEL } from '../../../enums/post';
 
 export type IResume = {
   resume_name: string;
@@ -43,3 +44,22 @@ export type IResume = {
 };
 
 export type ResumeModel = Model<IResume>;
+
+
+
+export interface IResumeExtractedData {
+  date_of_birth?: Date;
+  nationality?: string;
+  language?: string;
+  user:Types.ObjectId
+  address?: string;
+  linkedin?: string;
+  designation?: string;
+  bio?: string;
+  educations?: IEducation[];
+  workExperiences?: IWorkExperience[];
+  skills?: string[];
+  job_level:JOB_LEVEL
+}
+
+export type ResumeExtractedDataModel = Model<IResumeExtractedData>;

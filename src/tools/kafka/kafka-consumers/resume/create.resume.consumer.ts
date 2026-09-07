@@ -1,3 +1,4 @@
+import { ResumeHelper } from '../../../../app/modules/resume/resume.helper';
 import { IResume } from '../../../../app/modules/resume/resume.interface';
 import { ResumeServices } from '../../../../app/modules/resume/resume.service';
 import { UserService } from '../../../../app/modules/user/user.service';
@@ -25,6 +26,9 @@ export const ResumeConsumer = async () => {
             case 'analyze':
               const { id, fileId,role } = data.data;
               const result = await UserService.anlaizeUserResume(fileId, id,role);
+              break;
+            case 'extract_resume_data':
+              await ResumeHelper.extractResumeData(data.data);
               break;
           }
         } catch (error) {

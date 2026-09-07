@@ -89,7 +89,8 @@ const fileUploadHandler = () => {
       }
     } else if (file.fieldname === 'doc' || file.fieldname === 'resume') {
       // also alow the word file and .doc or .docx also
-      if (file.mimetype === 'application/pdf' || file.mimetype === 'application/msword' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.template' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.templateMain') {
+      console.log(file.mimetype);
+      if (file.mimetype === 'application/pdf'|| file.mimetype === 'application/octet-stream' || file.mimetype === 'application/msword' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ) {
         cb(null, true);
       } else {
         cb(new ApiError(StatusCodes.BAD_REQUEST, 'Only pdf supported'));

@@ -5,12 +5,23 @@ import { IUser } from "../app/modules/user/user.interface";
 import { User } from "../app/modules/user/user.model";
 import { chatbot } from "../config/open-ai.config";
 import { encode } from "@toon-format/toon";
-const askAI = async (prompt: string) => {
+const askAI = async (prompt: string,fileId?:string) => {
   const completion = await chatbot.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
       { role: "system", content: "You are a job recommendation engine. Return only valid JSON." },
-      { role: "user", content: prompt }
+      { role: "user", content: [
+        {
+          type: "text",
+          text: prompt
+        },
+        ...(fileId ? [{
+          type: "file",
+          file:{
+            file_id: fileId
+          }
+        }] : [] as any)
+      ] }
     ]
   });
 

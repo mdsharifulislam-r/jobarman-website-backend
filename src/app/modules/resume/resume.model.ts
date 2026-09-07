@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IResume, ResumeModel } from './resume.interface'; 
+import { IResume, IResumeExtractedData, ResumeExtractedDataModel, ResumeModel } from './resume.interface'; 
 
 const resumeSchema = new Schema<IResume, ResumeModel>({
   resume_name: { type: String, required: false },
@@ -70,3 +70,41 @@ const resumeSchema = new Schema<IResume, ResumeModel>({
 { timestamps: true });
 
 export const Resume = model<IResume, ResumeModel>('Resume', resumeSchema);
+
+
+const resumeExtractedDataSchema = new Schema<IResumeExtractedData, ResumeExtractedDataModel>({
+address: { type: String, required: false },
+date_of_birth: { type: Date, required: false },
+user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+nationality: { type: String, required: false },
+language: { type: String, required: false },
+linkedin: { type: String, required: false },
+designation: { type: String, required: false },
+bio: { type: String, required: false },
+educations: {
+  type:[{
+    degree: { type: String, required: false },
+    institution: { type: String, required: false },
+    startDate: { type: Date, required: false },
+    endDate: { type: Date, required: false },
+    grade: { type: String, required: false },
+    passingYear: { type: Number, required: false },
+  }]
+},
+workExperiences:[{
+  title: { type: String, required: false },
+  company: { type: String, required: false },
+  startDate: { type: Date, required: false },
+  endDate: { type: Date, required: false },
+  description: { type: String, required: false },
+  location: { type: String, required: false },
+  isCurrentJob: { type: Boolean, required: false },
+}],
+skills: {
+  type:[String]
+},
+job_level: { type: String, enum: ["ENTRY_LEVEL", "MID_LEVEL", "SENIOR_LEVEL"], required: false },
+},
+{ timestamps: true });
+
+export const ResumeExtractedData = model<IResumeExtractedData, ResumeExtractedDataModel>('ResumeExtractedData', resumeExtractedDataSchema);

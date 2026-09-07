@@ -24,6 +24,7 @@ import { emailTemplate } from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { Subscription } from '../subscription/subscription.model';
 import { subscriptionHelper } from '../subscription/subscription.helper';
+import { ResumeExtractedData } from '../resume/resume.model';
 
 const createPostIntoDB = async (post: IPost): Promise<IPost> => {
   const result = await Post.create(post);
@@ -76,13 +77,13 @@ const deletePostFromDB = async (id: string): Promise<IPost | null> => {
 };
 
 const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
-  await Post.updateMany({},{min_salary:0,max_salary:0})
   const cache = await RedisHelper.redisGet(`post_feed`, query);
   if (cache) {
     console.log('from cache');
 
     return cache;
   }
+  const userResumeExtractData = await ResumeExtractedData.findOne({user:user.id}).sort({createdAt:-1}).lean()
   const limit = Number(query.limit) || 10;
   const initalQuery = {
     is_deleted: false,
@@ -113,6 +114,11 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     const array = query.tags.split(',');
     initalQuery.required_skills = { $in: array };
     elasticQuery.skill = array
+  }else{
+    if(userResumeExtractData?.skills?.length){
+      initalQuery.required_skills = { $in: userResumeExtractData.skills };
+      elasticQuery.skill = userResumeExtractData.skills
+    }
   }
 
   if(query.dateLimit){
@@ -154,6 +160,11 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     const array = query.job_level.split(',');
     initalQuery.job_level = { $in: array };
     elasticQuery.jobTypes = array
+  }else{
+    if(userResumeExtractData?.job_level){
+      initalQuery.job_level = { $in: [userResumeExtractData.job_level] };
+      elasticQuery.jobTypes = [userResumeExtractData.job_level]
+    }
   }
 
   if (query.experience_level) {
@@ -174,6 +185,12 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
     await RedisHelper.redisSet(`post_feed`, {data,pagination}, query);
     return {data,pagination};
+  }
+
+  if(!query?.searchTerm){
+    if(userResumeExtractData?.designation){
+      query.searchTerm = userResumeExtractData.designation
+    }
   }
 
 
