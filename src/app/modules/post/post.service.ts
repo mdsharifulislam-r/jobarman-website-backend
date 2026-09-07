@@ -195,6 +195,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     }
   }
 
+  console.log(initalQuery,query);
 
   const postQuery = new QueryBuilder(Post.find(initalQuery), query)
     .paginate()

@@ -97,67 +97,119 @@ const demoPostData = {
     is_deleted:false
 }
 
-const getJobMatchAutoApplyPersentances = async (userId:string,percentage:number,fileId:string,posts:IPost[]) => {
-  console.log('ai is starting the auto apply calculation');
-    const user = await User.findById(userId)?.lean();
-    if(!user){
-        return [];
-    }
+const getJobMatchAutoApplyPersentances = async (
+  userId: string,
+  percentage: number,
+  fileId: string,
+  posts: IPost[]
+) => {
+  console.log("AI is starting the auto apply calculation");
 
-    const skills = user.skills || [];
-    const education = user.educations || [];
-    const workExperiences = user.workExperiences || [];
+  const user = await User.findById(userId).lean();
 
-    const prompt = `
-Here is the user profile data:
+  if (!user) {
+    return [];
+  }
 
-userSkills: ${encode(skills)}
-userEducation: ${encode(education)}
-userWorkExperience: ${encode(workExperiences)}
-fileId: ${fileId}
-percentage: ${percentage}
+  const skills = user.skills || [];
+  const education = user.educations || [];
+  const workExperiences = user.workExperiences || [];
 
-Here is the list of posts:
-posts: ${encode(posts)}
+  const prompt = `
+You are a job matching and recommendation engine.
 
-Compare the user’s skills, education, and work experience with each post’s required skills, education, and work experience. Determine which posts the user matches with at least the given percentage or higher. Return only the list of matched posts.
-and calculate how well the user matches each post and give the match percentage in jobMatch field.
-dont generate any demo data.
-The response must strictly follow this format :
-${JSON.stringify({
-  matchedPosts: [
-    demoPostData
-  ]
-})}
+Your task is to compare the candidate's profile and resume against the provided job posts and return ONLY the jobs that meet or exceed the required match percentage.
 
-    `
+CANDIDATE PROFILE:
+
+Skills:
+${encode(skills)}
+
+Education:
+${encode(education)}
+
+Work Experience:
+${encode(workExperiences)}
+
+Resume:
+The candidate resume is attached to this request. Analyze the actual resume content.
+
+MINIMUM MATCH PERCENTAGE:
+${percentage}%
+
+JOB POSTS:
+${encode(posts)}
+
+MATCHING RULES:
+
+1. Analyze the candidate's skills, education, work experience, and resume against each job post.
+2. Calculate a realistic match percentage for every job post.
+3. Add a job to matchedPosts ONLY if its calculated match percentage is greater than or equal to ${percentage}%.
+4. If a job does not meet the ${percentage}% threshold, DO NOT include it.
+5. If NO jobs meet the threshold, return:
+   {
+     "matchedPosts": []
+   }
+6. NEVER generate, invent, copy, or return demo/example job data.
+7. Only return jobs that actually exist in the provided "JOB POSTS" list.
+8. For every returned job, preserve the original job/post data and add/update the "jobMatch" field with the calculated percentage.
+9. Do not modify the actual job information.
+10. Do not create new jobs.
+11. Do not use the example schema as actual data.
+
+REQUIRED RESPONSE STRUCTURE:
+
+{
+  "matchedPosts": []
+}
+
+The "matchedPosts" array must contain ONLY matching jobs from the provided JOB POSTS list.
+
+Return ONLY valid JSON.
+Do not return markdown.
+Do not return explanations.
+Do not return comments.
+Do not return any text outside the JSON object.
+`;
+
   const response = await chatbot.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
-      { role: "system", content: "You are a job recommendation engine. Return only valid JSON." },
-      { role: "user", content:[
-        {
-          type: "text",
-          text: prompt
-        },
-        {
-          type: "file",
-          file:{
-            file_id: fileId
+      {
+        role: "system",
+        content:
+          "You are a strict job matching engine. Never generate demo data. Return only valid JSON."
+      },
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: prompt
+          },
+          {
+            type: "file",
+            file: {
+              file_id: fileId
+            }
           }
-          
-        }
-      ] }
+        ]
+      }
     ]
   });
 
   const raw = response.choices[0].message.content || "";
 
-  const clean = raw.replace(/\n/g, "").replace(/```json|```/g, "").trim();
+  const clean = raw
+    .replace(/```json|```/g, "")
+    .trim();
+
   const result = JSON.parse(clean);
-  console.log('ai auto apply calculation result:', result);
-    return result.matchedPosts as IPost[]
-}
+
+  console.log("AI auto apply calculation result:", result);
+
+  return result.matchedPosts as IPost[];
+};
 
 const analizeResumeHelper = async (fileId: string,role:string) => {
 
