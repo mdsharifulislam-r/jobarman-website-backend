@@ -27,29 +27,23 @@ import { applicationExtractorPromptMaker } from './application.constants';
 
 const createApplicationIntoDB = async (data: IApplication) => {
   console.log(data);
-  const applicationk = await Application.create(data);
-  console.log(applicationk);
-  const application = await Application.findById(applicationk._id).populate([
-    'post',
-    'user',
-  ]);
+  const application = (await Application.create(data)).populate('post user')
   console.log(application);
-
   sendNotifications({
-    title: `New application for ${((application as any).post as any)?.title} has been submitted!`,
-    message: `${((application as any).user as any)?.name} has submitted an application for ${((application as any).post as any)?.title}`,
+    title: `New application for ${((application as any)?.post as any)?.title} has been submitted!`,
+    message: `${((application as any)?.user as any)?.name} has submitted an application for ${((application as any)?.post as any)?.title}`,
     isRead: false,
     filePath: 'application',
     receiver: [data.recruiter],
-    referenceId: (application as any)._id,
+    referenceId: (application as any)?._id,
   });
   sendNotifications({
-    title: `Your application for ${((application as any).post as any)?.title} has been submitted!`,
-    message: `Your application for ${((application as any).post as any)?.title} has been submitted!`,
+    title: `Your application for ${((application as any)?.post as any)?.title} has been submitted!`,
+    message: `Your application for ${((application as any)?.post as any)?.title} has been submitted!`,
     isRead: false,
     filePath: 'application',
     receiver: [data.user],
-    referenceId: (application as any)._id,
+    referenceId: (application as any)?._id,
   });
   await RedisHelper.keyDelete(`applications:${data.recruiter}:*`);
   return application;
