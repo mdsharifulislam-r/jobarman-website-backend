@@ -13,10 +13,10 @@ router.route("/")
     .post(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.createPostZodSchema as any), PostController.createPost)
 
 router.route("/feed")
-    .get(PostController.getPostFeed)
+    .get(tempAuth(),PostController.getPostFeed)
 
 router.route("/recent-posts")
-    .get(PostController.getRecentsPosts)
+    .get(tempAuth(), PostController.getRecentsPosts)
 router.route("/recommended")
     .get(auth(), PostController.getRecommendedPosts)
 
