@@ -229,8 +229,12 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     postQuery.getPaginationInfo(),
   ]);
 
-  console.log(posts);
-  
+ 
+  if(!query?.searchTerm){
+    if(userResumeExtractData?.designation){
+      query.searchTerm = userResumeExtractData.designation
+    }
+  }
 
 
   const data = {
