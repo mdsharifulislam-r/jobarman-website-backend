@@ -84,7 +84,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   //   return cache;
   // }
   const userResumeExtractData = await ResumeExtractedData.findOne({user:user?.id}).sort({createdAt:-1}).lean()
-  console.log("userResumeExtractData",userResumeExtractData)
+  // console.log("userResumeExtractData",userResumeExtractData)
   const limit = Number(query.limit) || 10;
   const initalQuery = {
     is_deleted: false,
@@ -230,11 +230,11 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   ]);
 
  
-  if(!query?.searchTerm){
-    if(userResumeExtractData?.designation){
-      query.searchTerm = userResumeExtractData.designation
-    }
-  }
+  // if(!query?.searchTerm){
+  //   if(userResumeExtractData?.designation){
+  //     query.searchTerm = userResumeExtractData.designation
+  //   }
+  // }
 
 
   const data = {
