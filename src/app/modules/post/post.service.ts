@@ -273,6 +273,10 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   }else{
       if(userResumeExtractData?.assumptions_designations?.length){
         elasticQuery.jobtitles = [userResumeExtractData.designation!]
+        
+      }
+      if(userResumeExtractData?.skills?.length){
+        elasticQuery.skill = userResumeExtractData.skills
       }
     }
 
