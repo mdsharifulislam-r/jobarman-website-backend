@@ -191,11 +191,11 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
   if(!query?.searchTerm){
     if(userResumeExtractData?.designation){
-      initalQuery.searchTerm = userResumeExtractData.designation
+      query.searchTerm = userResumeExtractData.designation
     }
   }
 
-  console.log(initalQuery,query);
+
 
   const postQuery = new QueryBuilder(Post.find(initalQuery), query)
     .paginate()
@@ -228,6 +228,10 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     ]).exec(),
     postQuery.getPaginationInfo(),
   ]);
+
+  if(query?.searchTerm== userResumeExtractData?.designation){
+    delete query.searchTerm
+  }
 
  
   // if(!query?.searchTerm){
@@ -264,7 +268,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
   if(query?.searchTerm){
     if(elasticQuery?.jobtitles?.length){
-      elasticQuery.jobtitles = ["database"]
+      elasticQuery.jobtitles = [query.searchTerm]
     }
   }else{
       if(userResumeExtractData?.assumptions_designations?.length){
