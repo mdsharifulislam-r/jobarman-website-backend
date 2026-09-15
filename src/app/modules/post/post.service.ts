@@ -268,8 +268,11 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
   if(query?.searchTerm){
     if(elasticQuery?.jobtitles?.length){
+      elasticQuery.jobtitles = [...elasticQuery.jobtitles,query.searchTerm]
+    }else{
       elasticQuery.jobtitles = [query.searchTerm]
     }
+
   }else{
       if(userResumeExtractData?.assumptions_designations?.length){
         elasticQuery.jobtitles = [userResumeExtractData.designation!]
@@ -281,9 +284,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     }
 
   // third party posts 
-  console.log(elasticQuery,query);
   const thirdPosts = await PostHelper.fullfillDataUsingTheThirdPartyApis(data.data.length,user?.id,limit,elasticQuery,Number(query?.cursor),query?.category?.split(',')[0]);
-
   data.data = [...data.data,...(thirdPosts?.data||[])];
 
   if(thirdPosts?.cursor){
