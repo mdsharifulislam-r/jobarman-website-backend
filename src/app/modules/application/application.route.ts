@@ -6,11 +6,12 @@ import validateRequest from '../../middlewares/validateRequest';
 import { ApplicationValidations } from './application.validation';
 import fileUploadHandler from '../../middlewares/fileUploadHandler';
 import tempAuth from '../../middlewares/tempAuth';
+import { subscribeAuth } from '../../middlewares/subscribeAuth';
 
 const router = express.Router();
 
 router.route("/")
-    .post(auth(USER_ROLES.EMPLOYEE),fileUploadHandler(),validateRequest(ApplicationValidations.createApplicationZodSchema),ApplicationController.createApplication)
+    .post(auth(USER_ROLES.EMPLOYEE),fileUploadHandler(),subscribeAuth(["silver","gold","bronze"]),validateRequest(ApplicationValidations.createApplicationZodSchema),ApplicationController.createApplication)
     .get(auth(),ApplicationController.getApplications)
 
 router.route('/user')
@@ -19,7 +20,7 @@ router.route('/user')
 router.route("/feedback/:id")
     .post(auth(USER_ROLES.RECRUITER),validateRequest(ApplicationValidations.sendFeedBackSchema),ApplicationController.sendFeedBackofInterview)
 router.route("/auto-apply")
-    .post(auth(USER_ROLES.EMPLOYEE),fileUploadHandler(),validateRequest(ApplicationValidations.autoApplySchema),ApplicationController.autoApplyFeaturesForUser)
+    .post(auth(USER_ROLES.EMPLOYEE),fileUploadHandler(),subscribeAuth(["silver","gold","bronze"]),validateRequest(ApplicationValidations.autoApplySchema),ApplicationController.autoApplyFeaturesForUser)
 router.route("/auto-apply/:id")
     .get(auth(USER_ROLES.EMPLOYEE),ApplicationController.autoApplyResultsForUser)
 router.post("/start-interview/:id",auth(USER_ROLES.RECRUITER),ApplicationController.startInterview)

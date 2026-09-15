@@ -88,7 +88,7 @@ router
   .post(
     fileUploadHandler(),
     auth(),
-    subscribeAuth(["silver","gold"]),
+    subscribeAuth(["silver","gold","bronze"]),
     validateRequest(UserValidation.analyzeResumeZodSchema),
     UserController.anlaizeUserResume
   )

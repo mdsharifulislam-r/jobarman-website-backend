@@ -282,7 +282,7 @@ const jobMatchEmailTemplate = (values: {
           <tr>
             <td style="background:#123499; padding:24px; text-align:center;">
               <img 
-                src="https://your-domain.com/logo.png" 
+                src="https://res.cloudinary.com/dkbcx9amc/image/upload/v1766479420/Profile_imges-01_1_dvcjmi.png" 
                 alt="JOBARMAN Logo" 
                 style="max-height:45px; margin-bottom:10px;"
               />
@@ -304,7 +304,7 @@ const jobMatchEmailTemplate = (values: {
 
               <p style="font-size:14px;">
                 We matched <strong>${values.jobs.length}</strong> new job opportunities based on your profile.
-                Upgrade to <strong style="color:#FF8F27;">Premium</strong> to unlock full access and advanced job recommendations.
+                Upgrade to <strong style="color:#FF8F27;">Gold</strong> to unlock full access and advanced job recommendations.
               </p>
 
               <!-- Profile Tip -->

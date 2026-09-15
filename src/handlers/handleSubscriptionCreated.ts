@@ -91,7 +91,15 @@ if (interval === 'month') {
             endDate:endDate,
             price:packageData.price,
             txId:subscription.id,
-            name:packageData.name
+            name:packageData.name,
+            is_chat_allowed:packageData?.is_chat_allowed,
+            is_video_call_allowed:packageData?.is_video_call_allowed,
+            active_job_post_limit:packageData?.active_job_post_limit,
+            max_job_duration:packageData?.max_job_duration,
+            current_month:new Date().toISOString().split('T')[0],
+            max_applications_per_month:packageData?.max_applications_per_month,
+            max_resume_analyses_per_month:packageData?.max_resume_analyses_per_month,
+            used_applications_this_month:0,
         })
 
 

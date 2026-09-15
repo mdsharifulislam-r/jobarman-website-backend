@@ -9,6 +9,8 @@ import { kafkaProducer } from '../../../tools/kafka/kafka-producers/kafka.produc
 import { getSingleFilePath } from '../../../shared/getFilePath';
 import { getFromGoogleMaps } from '../../../helpers/mapHelper';
 import { Types } from 'mongoose';
+import { subscriptionHelper } from '../subscription/subscription.helper';
+import { Post } from './post.model';
 
 const createPost = catchAsync(async (req: Request, res: Response) => {
     const post:IPost = req.body;
@@ -18,7 +20,17 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
     post.thumbnail = image! || post?.prevImage!;
     post.prevPostId = post?.prevPostId || undefined;
     post.is_repost = post?.prevPostId ? true : false;
+    const subscription = await subscriptionHelper.getSubscriptionBasedLimit(user?.id);
+    const activeJobPostLimit = subscription?.active_job_post_limit??0;
+    const activeJobPosts = await Post.countDocuments({recruiter:user?.id,status:"active"});
+    if(activeJobPosts >= activeJobPostLimit && subscription?.name !="gold"){
+      throw new ApiError(403, 'You have reached the maximum number of active job posts. Please upgrade your subscription to use this feature.');
+    }
 
+    const jobDurationindays = (new Date().getTime() - new Date(post.deadline!).getTime()) / (1000 * 60 * 60 * 24);
+    if(jobDurationindays > (subscription?.max_job_duration??0)){
+      throw new ApiError(403, `You have reached the maximum duration of job post. Max duration is ${subscription?.max_job_duration??0} days. Please upgrade your subscription to use this feature.`);
+    }
     const isValidAddress = await getFromGoogleMaps(post.location);
     if(!isValidAddress){
       throw new ApiError(400, 'Invalid address');

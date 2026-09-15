@@ -13,6 +13,20 @@ const isPremiumUser = async (userId: string,subscriptionType:"bronze"|"gold"|"si
 };
 
 
+const getSubscriptionBasedLimit = async (userId: string) => {
+    const subscription = await Subscription.findOne({ user: userId, status: 'active' }).lean()
+    if(!subscription){
+        return 
+    }
+    const isPremium = subscription.name.toLowerCase().includes('premium')|| subscription.name.toLowerCase().includes('silver') || subscription.name.toLowerCase().includes('pro') || subscription.name.toLowerCase().includes('gold') || subscription.name.toLowerCase().includes('platinum')
+    return {
+        ...subscription,
+        isPremium
+    }
+}
+
+
 export const subscriptionHelper = {
-    isPremiumUser
+    isPremiumUser,
+    getSubscriptionBasedLimit
 }

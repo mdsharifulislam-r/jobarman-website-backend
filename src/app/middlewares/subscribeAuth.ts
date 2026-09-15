@@ -13,12 +13,15 @@ export const subscribeAuth = (roles: ("bronze" | "silver" | "gold")[]=[]) => {
             next(new ApiError(StatusCodes.BAD_REQUEST, "You have to upgrade your subscription to access this content."));
             return
            }
+
+      
            
         if(roles.length==0){
           return  next();
         }
 
         const match = roles.some((role) => subscription.name.toLowerCase().includes(role.toLowerCase()));
+
         if (match) {
             return next();
         }
@@ -27,7 +30,7 @@ export const subscribeAuth = (roles: ("bronze" | "silver" | "gold")[]=[]) => {
         }
         
         } else {
-            res.status(401).json({ message: 'Unauthorized' });
+            next(new ApiError(StatusCodes.UNAUTHORIZED, "You are not authorized to access this content."));
         }
     };
 }

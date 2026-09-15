@@ -3,10 +3,19 @@ import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { StatusCodes } from "http-status-codes";
 import { ChatService } from "./chat.service";
+import { USER_ROLES } from "../../../enums/user";
+import { subscriptionHelper } from "../subscription/subscription.helper";
+import ApiError from "../../../errors/ApiError";
 
 const createChat = catchAsync(async (req: Request, res: Response) => {
     const user = (req.user as any);
     const otherUser = req.params.id;
+    if(user?.role==USER_ROLES.EMPLOYEE){
+        const subscription = await subscriptionHelper.getSubscriptionBasedLimit(user?.id);
+        if(!subscription || !subscription?.isPremium){
+            throw new ApiError(403, 'You are not a premium user!! Please upgrade your subscription to use this feature.');
+        }
+    }
 
     const participants = [user?.id, otherUser];
     const chat = await ChatService.createChatToDB(participants);

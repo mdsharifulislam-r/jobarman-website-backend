@@ -14,6 +14,12 @@ export type IPackage = {
     referenceId: string,
     recurring:"month"|"year"|"week",
     interval?:number
+    max_applications_per_month?:number
+    max_resume_analyses_per_month?:number
+    is_chat_allowed?:boolean
+    is_video_call_allowed?:boolean,
+    active_job_post_limit?:number,
+    max_job_duration?:number
 }
 
 export type PackageModel = Model<IPackage>

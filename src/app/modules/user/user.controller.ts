@@ -211,9 +211,19 @@ const anlaizeUserResume = catchAsync(async (req: Request, res: Response) => {
   if(!filePath){
     throw new ApiError(400, 'Resume not found');
   }
+  const subscription = await subscriptionHelper.getSubscriptionBasedLimit((req.user as any).id);
+  if(!subscription){
+    throw new ApiError(403, 'You are not a premium user!! Please upgrade your subscription to use this feature.');
+  }
+  const currentMonthResumeAnalyses = await ResumeAnalysis.countDocuments({ user: (req.user as any).id, createdAt: { $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1), $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1) } });
+  if(!subscription?.isPremium && currentMonthResumeAnalyses > (subscription?.max_resume_analyses_per_month??1)){
+    throw new ApiError(403, 'You have reached the maximum number of resume analyses for this month. Please upgrade your subscription to use this feature.');
+  }
   const resumeAnalysis= await ResumeAnalysis.create({
+    user: (req.user as any).id,
     filePath: filePath!,
   });
+
   await kafkaProducer.sendMessage("resume", {type:"analyze",data:{id:resumeAnalysis._id,fileId:filePath,role}});
   sendResponse(res, {
     success: true,

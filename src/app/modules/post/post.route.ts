@@ -6,11 +6,12 @@ import fileUploadHandler from '../../middlewares/fileUploadHandler';
 import validateRequest from '../../middlewares/validateRequest';
 import { PostValidations } from './post.validation';
 import tempAuth from '../../middlewares/tempAuth';
+import { subscribeAuth } from '../../middlewares/subscribeAuth';
 
 const router = express.Router();
 
 router.route("/")
-    .post(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.createPostZodSchema as any), PostController.createPost)
+    .post(auth(USER_ROLES.RECRUITER),subscribeAuth(["silver","gold","bronze"]),fileUploadHandler(),validateRequest(PostValidations.createPostZodSchema as any), PostController.createPost)
 
 router.route("/feed")
     .get(tempAuth(),PostController.getPostFeed)
