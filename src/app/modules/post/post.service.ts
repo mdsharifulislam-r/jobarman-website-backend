@@ -189,7 +189,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     return {data,pagination};
   }
 
-  if(!query?.searchTerm || !query?.category){
+  if(!query?.searchTerm && !query?.category){
     if(userResumeExtractData?.designation){
       query.searchTerm = userResumeExtractData.designation
     }
