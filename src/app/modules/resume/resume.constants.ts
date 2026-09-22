@@ -3,7 +3,7 @@ export const demoRsumeExtractedData = {
   "date_of_birth": "1998-05-20",
   "nationality": "Bangladeshi",
   "language": "English",
-  "contact": "+880123456789",
+  "phone": "+880123456789",
   "address": "Dhaka",
   "linkedin": "https://linkedin.com/in/johndoe",
   "designation": "Software Engineer",
