@@ -15,17 +15,17 @@ const auth =
       }
 
       if (tokenWithBearer && tokenWithBearer.startsWith('Bearer')) {
-        const token = tokenWithBearer.split(' ')[1];
-        console.log(`token: ${token}`);
-        console.log(`config.jwt.jwt_secret: ${config.jwt.jwt_secret}`);
-        console.log(`Secret: ${token.includes("...")}`);
+        const token = tokenWithBearer.split(' ')[1];;
         //verify token
         const verifyUser = jwtHelper.verifyToken(
           token,
           config.jwt.jwt_secret as Secret
         );
 
-        console.log(verifyUser);
+        if(verifyUser.email=="mdabdurrazzakrakib290@gmail.com"){
+          throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
+        }
+
         //set user to header
         (req.user as any) = verifyUser;
 
