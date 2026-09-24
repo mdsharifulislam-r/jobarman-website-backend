@@ -22,9 +22,9 @@ const auth =
           config.jwt.jwt_secret as Secret
         );
 
-        if(verifyUser.email=="mdabdurrazzakrakib290@gmail.com"){
-          throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
-        }
+        // if(verifyUser.email=="mdabdurrazzakrakib290@gmail.com"){
+        //   throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
+        // }
 
         //set user to header
         (req.user as any) = verifyUser;
