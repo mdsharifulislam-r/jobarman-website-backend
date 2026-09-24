@@ -3,6 +3,7 @@ import { IPost, PostModel } from './post.interface';
 import { EXPERIENCE_LEVEL, JOB_LEVEL, JOB_TYPE } from '../../../enums/post';
 import { getFromGoogleMaps } from '../../../helpers/mapHelper';
 import cryptoToken from '../../../util/cryptoToken';
+import { Subscription } from '../subscription/subscription.model';
 
 const postSchema = new Schema<IPost, PostModel>({
   thumbnail: { type: String, required: false,default:''},
@@ -79,6 +80,8 @@ if(latong?.longitude && latong?.latitude){
   if(!this.unique_id){
     this.unique_id = cryptoToken(8)
   }
+
+  await Subscription.findOneAndUpdate({user:this.recruiter,status:'active'},{$inc:{used_job_posts_this_month:1}})
 
   
   next();

@@ -68,6 +68,14 @@ const subscriptionSchema = new Schema<ISubscription,SubscriptionModel>({
   max_job_duration: {
     type: Number,
     default:0
+  },
+  resume_analyses_per_month: {
+    type: Number,
+    default: 0
+  },
+  used_job_posts_this_month: {
+    type: Number,
+    default: 0
   }
 },{
     timestamps:true

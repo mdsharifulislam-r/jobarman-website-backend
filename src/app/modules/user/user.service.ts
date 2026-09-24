@@ -245,7 +245,8 @@ const anlaizeUserResume = async (cvPath:string,id:string,role?:string) => {
   const result = await AIHelper.analizeResumeHelper(fileId!,role!);
   const io = (global as any ).io;
   io.emit(`resume-analysis::${id}`,result);
-  await ResumeAnalysis.updateOne({_id:id},{analysis:result,status:"completed"},{upsert:true});
+  const resume =await ResumeAnalysis.findOneAndUpdate({_id:id},{analysis:result,status:"completed"},{new:true});
+  await Subscription.findOneAndUpdate({user:resume?.user,status:"active"},{$inc:{resume_analyses_per_month:1}});
 
   return result;
 }

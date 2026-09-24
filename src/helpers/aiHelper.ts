@@ -300,7 +300,6 @@ const result = await chatbot.chat.completions.create({
 
   const clean = raw.replace(/\n/g, "").replace(/```json|```/g, "").trim();
   const cleanResult = JSON.parse(clean);
-  console.log('ai auto apply calculation result:', cleanResult);
     return cleanResult
 } catch (error) {
   console.log(error);

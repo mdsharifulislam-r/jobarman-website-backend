@@ -16,7 +16,9 @@ export type ISubscription = {
     is_chat_allowed?:boolean
     is_video_call_allowed?:boolean
     active_job_post_limit?:number
-    max_job_duration?:number
+    used_job_posts_this_month?:number
+    max_job_duration?:number,
+    resume_analyses_per_month?:number
 }
 
 export  type SubscriptionModel = Model<ISubscription, Record<string, any>>;

@@ -22,8 +22,8 @@ const createPost = catchAsync(async (req: Request, res: Response) => {
     post.is_repost = post?.prevPostId ? true : false;
     const subscription = await subscriptionHelper.getSubscriptionBasedLimit(user?.id);
     const activeJobPostLimit = subscription?.active_job_post_limit??0;
-    const activeJobPosts = await Post.countDocuments({recruiter:user?.id,status:"active"});
-    if(activeJobPosts >= activeJobPostLimit && subscription?.name !="gold"){
+    const activeJobPosts = subscription?.used_job_posts_this_month??0;
+    if((activeJobPosts >= activeJobPostLimit) && subscription?.name !="gold"){
       throw new ApiError(403, 'You have reached the maximum number of active job posts. Please upgrade your subscription to use this feature.');
     }
 

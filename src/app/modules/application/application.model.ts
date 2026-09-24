@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose';
 import { IApplication, ApplicationModel, IInterview, InterviewModel, IAutoApply, AutoApplyModel } from './application.interface'; 
 import { APPLICATION_STATUS } from '../../../enums/application';
+import { Subscription } from '../subscription/subscription.model';
 
 const applicationSchema = new Schema<IApplication, ApplicationModel>({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -32,6 +33,12 @@ const applicationSchema = new Schema<IApplication, ApplicationModel>({
 },{
   timestamps:true
 });
+
+applicationSchema.pre('save',async function (next) {
+  if(this.user){
+    await Subscription.updateOne({ user: this.user }, { $inc: { used_applications_this_month: 1 } });
+  }
+})
 
 export const Application = model<IApplication, ApplicationModel>('Application', applicationSchema);
 

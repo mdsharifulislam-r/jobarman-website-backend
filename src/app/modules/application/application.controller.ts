@@ -41,24 +41,10 @@ const createApplication = catchAsync(async (req: Request, res: Response) => {
   const subscription = await subscriptionHelper.getSubscriptionBasedLimit(
     (req.user as any).id,
   );
-  if (!subscription) {
-    throw new ApiError(
-      403,
-      'You are not a premium user!! Please upgrade your subscription to use this feature.',
-    );
-  }
 
-  // get current month users applications count
-  const currentMonthApplications = await Application.countDocuments({
-    user: (req.user as any).id,
-    createdAt: {
-      $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-      $lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
-    },
-  });
   if (
-    !subscription?.isPremium &&
-    currentMonthApplications >= (subscription?.max_applications_per_month ?? 10)
+    !subscription?.max_applications_per_month &&
+    (subscription?.used_applications_this_month||0) >= (subscription?.max_applications_per_month ?? 10)
   ) {
     throw new ApiError(
       403,
