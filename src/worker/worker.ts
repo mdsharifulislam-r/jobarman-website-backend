@@ -32,7 +32,7 @@ export const startWorker = () => {
 
   cron.schedule('0 0 * * *', async () => {
     AutoApply();
-    sendEmailBatchToUsers();
+    await sendEmailBatchToUsers();
     deleteExpireJobsPosts();
     suspendExpiredSubscriptions();
 fetchNewData10TimesInDay()
