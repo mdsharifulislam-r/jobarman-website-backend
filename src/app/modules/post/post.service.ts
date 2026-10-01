@@ -37,6 +37,7 @@ const createPostIntoDB = async (post: IPost): Promise<IPost> => {
     isRead:false,
     receiver:[post?.recruiter!]
   })
+  RedisHelper.keyDelete(`all_category:*`);
   return result;
 };
 
