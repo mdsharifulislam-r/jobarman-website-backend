@@ -4,11 +4,12 @@ import auth from '../../middlewares/auth';
 import { USER_ROLES } from '../../../enums/user';
 import { PackageValidation } from './package.validation';
 import validateRequest from '../../middlewares/validateRequest';
+import tempAuth from '../../middlewares/tempAuth';
 
 const router = express.Router();
 router.route("/")
     .post(auth(),validateRequest(PackageValidation.createPackageZodSchema), PackageController.createPackage)
-    .get(PackageController.getAllPackages)
+    .get(tempAuth(),PackageController.getAllPackages)
 
 
 router.route("/:id")

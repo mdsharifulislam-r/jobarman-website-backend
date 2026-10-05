@@ -4,6 +4,8 @@ import { Package } from "./package.model";
 import stripe from "../../../config/stripe";
 import ApiError from "../../../errors/ApiError";
 import { StatusCodes } from "http-status-codes";
+import { JwtPayload } from "jsonwebtoken";
+import { USER_ROLES } from "../../../enums/user";
 
 const createPackageIntoDB = async (data:IPackage)=>{
     const product = await stripe.products.create({
@@ -35,8 +37,9 @@ const createPackageIntoDB = async (data:IPackage)=>{
     return result
 }
 
-const getAllPackagesFromDB = async (type:string="employee")=>{
-    const result = await Package.find(type?{for:type,status:"active"}:{status:"active"})
+const getAllPackagesFromDB = async (user:JwtPayload,type:string="employee")=>{
+    const initQuery = [USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN].includes(user.role) ? {status:"active"} : {for:type,status:"active"}
+    const result = await Package.find(initQuery)
     return result
 }
 
