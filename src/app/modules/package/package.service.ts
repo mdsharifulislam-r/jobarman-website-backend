@@ -8,6 +8,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { USER_ROLES } from "../../../enums/user";
 
 const createPackageIntoDB = async (data:IPackage)=>{
+    console.log(data);
     const product = await stripe.products.create({
         name: data.name,
         description: data.features.join(', '),
