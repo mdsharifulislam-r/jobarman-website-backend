@@ -347,18 +347,6 @@ const sleep = (ms: number) =>
 export const startWorker = () => {
   console.log('Worker started');
 
-  /**
-   * Run every 4 hours
-   */
-  cron.schedule('0 */4 * * *', async () => {
-    console.log('4-hour worker started');
-
-    try {
-      await sendEmailBatchToUsers();
-    } catch (error) {
-      await handleWorkerError(error, 'sendEmailBatchToUsers');
-    }
-  });
 
   /**
    * Run once every day at midnight
@@ -395,6 +383,7 @@ const runDailyJobs = async () => {
   await deleteExpireJobsPosts();
 
   await suspendExpiredSubscriptions();
+      await sendEmailBatchToUsers();
 
   console.log('Daily jobs completed successfully');
 };
