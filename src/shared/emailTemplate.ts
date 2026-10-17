@@ -179,7 +179,7 @@ const jobMatchEmailTemplate = (values: {
             ${job.title} ${job?.job_board ? `(${job?.job_board||'JOBARMAN'})` : 'JOBARMAN'}
           </p>
           <a 
-            href="${job?.job_url||`https://JOBARMAN.com/posts/${(job as any)._id}`}" 
+            href="${(job as any)._id?`https://jobarman.com/jobs/${(job as any)._id}`:job.job_url}" 
             style="display:inline-block; margin-top:6px; font-size:13px; color:#FF8F27; text-decoration:none; font-weight:600;"
           >
             View job
