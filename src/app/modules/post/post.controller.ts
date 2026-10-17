@@ -169,6 +169,17 @@ const getJobMatchPercentances = catchAsync(async (req: Request, res: Response) =
     });
 })
 
+
+const getPostCount = catchAsync(async (req: Request, res: Response) => {
+    const result = await PostServices.getTotalJobCounts();
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'Post count fetched successfully',
+        data: result,
+    });
+})
+
 export const PostController = {
     createPost,
     updatePost,
@@ -179,6 +190,7 @@ export const PostController = {
     getRecommendedPosts,
     getRecentsPosts,
     getPost,
-    getJobMatchPercentances
+    getJobMatchPercentances,
+    getPostCount
 
 };

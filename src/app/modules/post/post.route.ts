@@ -30,6 +30,8 @@ router.route("/insights/:id")
 router.route('/match-percentage/:id')
     .get(tempAuth(), PostController.getJobMatchPercentances)
 
+router.get('/jobs-count', PostController.getPostCount)
+
 router.route("/:id")
     .patch(auth(USER_ROLES.RECRUITER),fileUploadHandler(),validateRequest(PostValidations.updatePostZodSchema), PostController.updatePost)
     .delete(auth(), PostController.deletePost)

@@ -647,6 +647,15 @@ const getJobMatchPercentances = async (userId: string,postId: string) => {
   return percentage;
 }
 
+
+const getTotalJobCounts = async () => {
+  const total = await Post.countDocuments({
+    is_deleted: false,
+    status: 'active',
+  });
+  return total;
+};
+
 export const PostServices = {
   createPostIntoDB,
   updatePostToDB,
@@ -659,5 +668,6 @@ export const PostServices = {
   getSinglePostDetails,
   bulkInsertPostIntoDB,
   sendEmailForMathchedPosts,
-  getJobMatchPercentances
+  getJobMatchPercentances,
+  getTotalJobCounts
 };
