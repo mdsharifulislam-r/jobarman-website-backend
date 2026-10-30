@@ -13,17 +13,17 @@ import ApiError from '../../../errors/ApiError';
 const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const user = (req.user as any).id;
   const subscription = await subscriptionHelper.getSubscriptionBasedLimit(user?.id);
-  if(user?.role==USER_ROLES.EMPLOYEE){
-    if(!subscription || !subscription?.is_chat_allowed){
+  if (user?.role == USER_ROLES.EMPLOYEE) {
+    if (!subscription || !subscription?.is_chat_allowed) {
       throw new ApiError(403, 'You are not a premium user!! Please upgrade your subscription to use this feature.');
     }
   }
 
-  if(req.body.type=="zoom-link" && !subscription?.is_video_call_allowed){
+  if (subscription && (req.body.type == "zoom-link" && !subscription?.is_video_call_allowed) && (subscription?.name != "gold")) {
     throw new ApiError(403, 'You are not a premium user!! Please upgrade your subscription to use this feature.');
   }
 
-  
+
 
 
   let image = getMultipleFilesPath(req.files, 'image');
@@ -31,16 +31,16 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
 
   const payload = {
     ...req.body,
-    image:image||[],
+    image: image || [],
     sender: user,
-    docs:docs||[],
+    docs: docs || [],
   };
-  if(payload.type=="zoom-link" && !payload.isCustom){
-  const link= await generateZoomLink()
-  payload.text=link;
-}
+  if (payload.type == "zoom-link" && !payload.isCustom) {
+    const link = await generateZoomLink()
+    payload.text = link;
+  }
 
-  await kafkaProducer.sendMessage("chat", {type:"create",data:payload});
+  await kafkaProducer.sendMessage("chat", { type: "create", data: payload });
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -52,10 +52,10 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
 const getMessage = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
 
-  
+
   const query = req.query;
   const user = (req.user as any);
-  const messages = await MessageService.getMessageFromDB(id, query,user);
+  const messages = await MessageService.getMessageFromDB(id, query, user);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
