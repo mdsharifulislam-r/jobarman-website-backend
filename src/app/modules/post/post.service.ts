@@ -225,7 +225,16 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     elasticQuery.jobtitles = getAllCategories?.map((cat: any) => cat.name);
     initalQuery.$or = [
       { category: { $in: array } },
-      { category_string: { $in: getAllCategories?.map((cat: any) => cat.name) } }
+      { category_string: { $in: getAllCategories?.map((cat: any) => cat.name) } },
+      // match with title with category name regex
+      {
+        title: {
+          $regex: new RegExp(
+            getAllCategories?.map((cat: any) => cat.name).join('|'),
+            'i'
+          ),
+        },
+      },
     ]
 
   }
