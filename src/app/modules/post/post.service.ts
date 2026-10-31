@@ -29,13 +29,13 @@ import { ResumeExtractedData } from '../resume/resume.model';
 const createPostIntoDB = async (post: IPost): Promise<IPost> => {
   const result = await Post.create(post);
   await RedisHelper.keyDelete('post_feed:*');
- sendNotifications({
-    title:`Your post has been created`,
-    message:`Your post has been created successfully`,
-    filePath:"post",
-    referenceId:result._id as any,
-    isRead:false,
-    receiver:[post?.recruiter!]
+  sendNotifications({
+    title: `Your post has been created`,
+    message: `Your post has been created successfully`,
+    filePath: "post",
+    referenceId: result._id as any,
+    isRead: false,
+    receiver: [post?.recruiter!]
   })
   RedisHelper.keyDelete(`all_category:*`);
   return result;
@@ -84,49 +84,51 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
 
   //   return cache;
   // }
-  const userResumeExtractData = await ResumeExtractedData.findOne({user:user?.id}).sort({createdAt:-1}).lean()
+  const userResumeExtractData = await ResumeExtractedData.findOne({ user: user?.id }).sort({ createdAt: -1 }).lean()
   // console.log("userResumeExtractData",userResumeExtractData)
   const limit = Number(query.limit) || 10;
   const initalQuery = {
     is_deleted: false,
-    status:'active',
+    status: 'active',
   } as Record<string, any>;
 
   let elasticQuery = {} as IQuery
   if (query.minPrice) {
-    if(query.minPrice == 1){
+    if (query.minPrice == 1) {
       query.minPrice = 0
     }
     initalQuery.min_salary = { $gte: query.minPrice };
     elasticQuery.minSalary = query.minPrice
   }
 
-  if(query.location){
-    initalQuery.location = { $regex: query.location, $options: 'i' };
+  if (query.location) {
+    const escapedLocation = String(query.location).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    initalQuery.location = { $regex: escapedLocation, $options: 'i' };
     const address = await mapHelper.getCountryName(query.location);
-    if(address?.country){
+    if (address?.country) {
       elasticQuery.location = [address.country]
     }
-    if(address?.state){
+    if (address?.state) {
       elasticQuery.state = [address.state]
     }
   }
 
-  if(query.tags){
+  if (query.tags) {
     const array = query.tags.split(',');
     initalQuery.required_skills = { $in: array };
     elasticQuery.skill = array
-  }else{
+  } else {
     // if(userResumeExtractData?.skills?.length){
     //   initalQuery.required_skills = { $in: userResumeExtractData.skills };
     //   elasticQuery.skill = userResumeExtractData.skills
     // }
   }
 
-  if(query.dateLimit){
+  if (query.dateLimit) {
     const date = PostHelper.getStartDateFromFilter(query.dateLimit);
-    
+
     initalQuery.createdAt = { $gte: date };
+    elasticQuery.postDate = date.split('T')[0];
   }
 
   if (query.maxPrice) {
@@ -140,28 +142,28 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   }
 
   if (query.category) {
-   
+
     const array = query.category.split(',');
 
-     const getAllCategories = await Category.find({_id:{$in:array}})
-     elasticQuery.jobtitles = getAllCategories?.map((cat: any) => cat.name);
-     initalQuery.$or= [
-      {category:{$in:array}},
-      {category_string:{$in:getAllCategories?.map((cat: any) => cat.name)}}
-     ]
+    const getAllCategories = await Category.find({ _id: { $in: array } })
+    elasticQuery.jobtitles = getAllCategories?.map((cat: any) => cat.name);
+    initalQuery.$or = [
+      { category: { $in: array } },
+      { category_string: { $in: getAllCategories?.map((cat: any) => cat.name) } }
+    ]
 
   }
 
   if (query.job_type) {
     const array = query.job_type.split(',');
     initalQuery.job_type = { $in: array };
-    
+    elasticQuery.jobTypes = array;
   }
 
   if (query.job_level) {
     const array = query.job_level.split(',');
     initalQuery.job_level = { $in: array };
-    elasticQuery.jobTypes = array
+    elasticQuery.seniority = array;
   }
   // else{
   //   if(userResumeExtractData?.job_level){
@@ -173,30 +175,99 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
   if (query.experience_level) {
     const array = query.experience_level.split(',');
     initalQuery.experience_level = { $in: array };
-    if(elasticQuery.jobTypes?.length){
-      elasticQuery.jobTypes = [...elasticQuery.jobTypes,...array]
-    }else{
-      elasticQuery.jobTypes = array
-    }
   }
 
-  if(query.radius){
-    if(!query.lat || !query.lng){
-      throw new ApiError(StatusCodes.BAD_REQUEST,'Please provide lat and lng');
-    }
-    const {data,pagination} = await PostHelper.getDataByRange(user,initalQuery,query);
-
-    await RedisHelper.redisSet(`post_feed:${user?.id}`, {data,pagination}, query);
-    return {data,pagination};
-  }
-
-  if(!query?.searchTerm && !query?.category){
-    if(userResumeExtractData?.designation){
+  if (!query?.searchTerm && !query?.category) {
+    if (userResumeExtractData?.designation) {
       query.searchTerm = userResumeExtractData.designation
     }
   }
 
+  const searchTerm =
+    typeof query.searchTerm === 'string' ? query.searchTerm.trim() : '';
+  if (searchTerm) {
+    query.searchTerm = searchTerm;
+    const searchTerms = [...new Set(searchTerm.split(/\s+/).filter(Boolean))];
+    const escapedSearchTerms = searchTerms.map(term =>
+      term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    );
+    const matchingCategories = await Category.find({
+      $or: escapedSearchTerms.map(term => ({
+        name: { $regex: term, $options: 'i' },
+      })),
+    })
+      .lean();
+    const searchableFields = [
+      'title',
+      'description',
+      'location',
+      'category_string',
+      'recruiter_company',
+      'required_skills',
+      'job_type',
+      'job_level',
+      'experience_level',
+      'work_mode',
+    ];
 
+    initalQuery.$and = searchTerms.map((term, index) => {
+      const regex = new RegExp(escapedSearchTerms[index], 'i');
+      const conditions: Record<string, any>[] = searchableFields.map(field => ({
+        [field]: regex,
+      }));
+      const matchingCategoryIds = matchingCategories
+        .filter(category => regex.test(category.name))
+        .map(category => category._id);
+
+      if (matchingCategoryIds.length) {
+        conditions.push({ category: { $in: matchingCategoryIds } });
+      }
+
+      return { $or: conditions };
+    });
+  }
+
+  if (searchTerm && searchTerm !== userResumeExtractData?.designation) {
+    if (elasticQuery.jobtitles?.length) {
+      elasticQuery.jobtitles = [...elasticQuery.jobtitles, searchTerm];
+    } else {
+      elasticQuery.jobtitles = [searchTerm];
+    }
+  } else {
+    if (userResumeExtractData?.assumptions_designations?.length) {
+      elasticQuery.jobtitles = [userResumeExtractData.designation!];
+    }
+    if (userResumeExtractData?.skills?.length) {
+      elasticQuery.skill = userResumeExtractData.skills;
+    }
+  }
+
+  if (query.radius) {
+    const latitude = Number(query.lat);
+    const longitude = Number(query.lng);
+    const radius = Number(query.radius);
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude) ||
+      !Number.isFinite(radius) ||
+      radius <= 0
+    ) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        'Please provide valid lat, lng, and radius'
+      );
+    }
+    const { data, pagination } = await PostHelper.getDataByRange(
+      user,
+      initalQuery,
+      query,
+      elasticQuery,
+      query?.category?.split(',')[0]
+    );
+
+    await RedisHelper.redisSet(`post_feed:${user?.id}`, { data, pagination }, query);
+    return { data, pagination };
+  }
 
   const postQuery = new QueryBuilder(Post.find(initalQuery), query)
     .paginate()
@@ -214,8 +285,7 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
       'dateLimit',
       'tags',
       'location',
-    ])
-    .search(['title', 'location']);
+    ]);
   const [posts, pagination] = await Promise.all([
     postQuery.modelQuery.populate([
       {
@@ -230,11 +300,11 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
     postQuery.getPaginationInfo(),
   ]);
 
-  if(query?.searchTerm== userResumeExtractData?.designation){
+  if (searchTerm === userResumeExtractData?.designation) {
     delete query.searchTerm
   }
 
- 
+
   // if(!query?.searchTerm){
   //   if(userResumeExtractData?.designation){
   //     query.searchTerm = userResumeExtractData.designation
@@ -251,8 +321,8 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
         });
 
         const isFavorite = await Favourite.findOne({
-            post: post._id,
-            user: user?.id
+          post: post._id,
+          user: user?.id
         });
 
         return {
@@ -262,33 +332,16 @@ const postFeedFromDb = async (query: Record<string, any>, user: JwtPayload) => {
         };
 
 
-    })
+      })
     ),
     pagination,
   };
 
-  if(query?.searchTerm){
-    if(elasticQuery?.jobtitles?.length){
-      elasticQuery.jobtitles = [...elasticQuery.jobtitles,query.searchTerm]
-    }else{
-      elasticQuery.jobtitles = [query.searchTerm]
-    }
-
-  }else{
-      if(userResumeExtractData?.assumptions_designations?.length){
-        elasticQuery.jobtitles = [userResumeExtractData.designation!]
-        
-      }
-      if(userResumeExtractData?.skills?.length){
-        elasticQuery.skill = userResumeExtractData.skills
-      }
-    }
-
   // third party posts 
-  const thirdPosts = await PostHelper.fullfillDataUsingTheThirdPartyApis(data.data.length,user?.id,limit,elasticQuery,Number(query?.cursor),query?.category?.split(',')[0]);
-  data.data = [...data.data,...(thirdPosts?.data||[])];
+  const thirdPosts = await PostHelper.fullfillDataUsingTheThirdPartyApis(data.data.length, user?.id, limit, elasticQuery,   query?.cursor ? Number(query.cursor) : undefined, query?.category?.split(',')[0]);
+  data.data = [...data.data, ...(thirdPosts?.data || [])];
 
-  if(thirdPosts?.cursor){
+  if (thirdPosts?.cursor) {
     data.pagination.cursor = thirdPosts?.cursor;
   }
 
@@ -305,7 +358,7 @@ const getPostsFromDB = async (query: Record<string, any>, user: JwtPayload) => {
   const postQuery = new QueryBuilder(Post.find(initalQuery), query)
     .paginate()
     .sort()
-    .filter(['is_deleted','downloadType',"shortForm"])
+    .filter(['is_deleted', 'downloadType', "shortForm"])
     .search(['title']);
   const [posts, pagination] = await Promise.all([
     postQuery.modelQuery.populate('recruiter', 'name email image').exec(),
@@ -313,12 +366,12 @@ const getPostsFromDB = async (query: Record<string, any>, user: JwtPayload) => {
   ]);
 
   return {
-    data:user.role ==USER_ROLES.RECRUITER? query.shortForm=='true'? posts?.map((post) => ({name:post.title,_id:post._id})):await Promise.all(
-        posts?.map(async (post) => {
+    data: user.role == USER_ROLES.RECRUITER ? query.shortForm == 'true' ? posts?.map((post) => ({ name: post.title, _id: post._id })) : await Promise.all(
+      posts?.map(async (post) => {
         const applications = await Application.find({
           post: post._id,
         }).populate('user').sort('-createdAt').limit(4);
-        
+
         const userImages = applications?.map((application: any) => {
           return application.user.image;
         });
@@ -326,14 +379,14 @@ const getPostsFromDB = async (query: Record<string, any>, user: JwtPayload) => {
         const totalapplications = await Application.countDocuments({
           post: post._id,
         })
-        
+
         return {
           ...post.toObject(),
           userImages,
-          totalapplications:totalapplications>4?totalapplications-4:totalapplications
+          totalapplications: totalapplications > 4 ? totalapplications - 4 : totalapplications
         };
       })
-    ):posts,
+    ) : posts,
     pagination,
   };
 };
@@ -383,6 +436,98 @@ const getPostInsigtsFromDB = async (postId: string, days: number = 30) => {
     .sort({ createdAt: -1 })
     .limit(10);
 
+  // ── Graph: daily breakdown ────────────────────────────────────────────────
+  // Build a complete list of day labels within the selected range
+  const dayLabels: string[] = [];
+  const shortDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthNames = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    // For week view (≤7 days) use short day names; otherwise use "DD MMM"
+    const label =
+      days <= 7
+        ? shortDayNames[d.getDay()]
+        : `${String(d.getDate()).padStart(2, '0')} ${monthNames[d.getMonth()]}`;
+    dayLabels.push(label);
+  }
+
+  // Aggregate daily totals for all applications
+  const dailyApplicationsAgg = await Application.aggregate([
+    {
+      $match: {
+        post: post._id,
+        createdAt: { $gte: date },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+          day: { $dayOfMonth: '$createdAt' },
+          dayOfWeek: { $dayOfWeek: '$createdAt' }, // 1=Sun … 7=Sat
+        },
+        total: { $sum: 1 },
+        qualified: {
+          $sum: {
+            $cond: [
+              {
+                $in: [
+                  '$status',
+                  [APPLICATION_STATUS.SHORTLISTED, APPLICATION_STATUS.INTERVIEW],
+                ],
+              },
+              1,
+              0,
+            ],
+          },
+        },
+        rejected: {
+          $sum: {
+            $cond: [{ $eq: ['$status', APPLICATION_STATUS.REJECTED] }, 1, 0],
+          },
+        },
+      },
+    },
+    { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } },
+  ]);
+
+  // Map aggregated results to their day label
+  const aggMap = new Map<string, { total: number; qualified: number; rejected: number }>();
+  for (const row of dailyApplicationsAgg) {
+    const d = new Date(row._id.year, row._id.month - 1, row._id.day);
+    const label =
+      days <= 7
+        ? shortDayNames[d.getDay()]
+        : `${String(d.getDate()).padStart(2, '0')} ${monthNames[d.getMonth()]}`;
+    aggMap.set(label, {
+      total: row.total,
+      qualified: row.qualified,
+      rejected: row.rejected,
+    });
+  }
+
+  // Build the final graph series, filling zeros for days with no data
+  const graphData = dayLabels.map((label) => {
+    const row = aggMap.get(label) ?? { total: 0, qualified: 0, rejected: 0 };
+    const engagement = row.total
+      ? Math.round(((row.qualified + row.rejected) / row.total) * 100)
+      : 0;
+    return {
+      label,
+      application: row.total,
+      qualified: row.qualified,
+      rejected: row.rejected,
+      engagement,
+    };
+  });
+  // ─────────────────────────────────────────────────────────────────────────
+
   return {
     summary: {
       total: applicationsCount,
@@ -392,6 +537,7 @@ const getPostInsigtsFromDB = async (postId: string, days: number = 30) => {
     },
     recentApplications,
     recentQualifiedApplications,
+    graph: graphData,
   };
 };
 
@@ -528,8 +674,8 @@ const getSinglePostDetails = async (id: string) => {
     throw new ApiError(404, 'Post not found');
   }
   await RedisHelper.redisSet(`post:${id}`, post);
-  const userImages= (await Application.find({post:id}).populate('user').limit(4)).map((application:any) => application.user.image);
-  const totalapplications = await Application.countDocuments({post:id});
+  const userImages = (await Application.find({ post: id }).populate('user').limit(4)).map((application: any) => application.user.image);
+  const totalapplications = await Application.countDocuments({ post: id });
 
   return {
     ...post,
@@ -549,100 +695,100 @@ const bulkInsertPostIntoDB = async (posts: IPost[]) => {
 };
 
 
-const sendEmailForMathchedPosts = async (userInfo:UsersInfoResponse) => {
+const sendEmailForMathchedPosts = async (userInfo: UsersInfoResponse) => {
 
   try {
-    
-  // get system jobs useing the userinfo.jobTypes with posts title filter regex match
-const buildRegexArray = (arr: string[]) =>
-  arr.map((item) => new RegExp(`^${item}$`, "i"));
 
-const systemMatchedPosts = await Post.find({
-  is_deleted: false,
-  status: "active",
-  deadline: { $gte: new Date() },
+    // get system jobs useing the userinfo.jobTypes with posts title filter regex match
+    const buildRegexArray = (arr: string[]) =>
+      arr.map((item) => new RegExp(`^${item}$`, "i"));
 
-  ...(userInfo.jobTypes?.length && {
-    title: { $in: buildRegexArray(userInfo.jobTypes) }
-  }),
-  $or: [
-    ...(userInfo.country?.length ? [{ location: { $in: buildRegexArray(userInfo.country) } }] : []),
-    ...(userInfo.state?.length ? [{ location: { $in: buildRegexArray(userInfo.state) } }] : []),
-  ]
-}).lean().limit(20);
+    const systemMatchedPosts = await Post.find({
+      is_deleted: false,
+      status: "active",
+      deadline: { $gte: new Date() },
 
-  
-  
+      ...(userInfo.jobTypes?.length && {
+        title: { $in: buildRegexArray(userInfo.jobTypes) }
+      }),
+      $or: [
+        ...(userInfo.country?.length ? [{ location: { $in: buildRegexArray(userInfo.country) } }] : []),
+        ...(userInfo.state?.length ? [{ location: { $in: buildRegexArray(userInfo.state) } }] : []),
+      ]
+    }).lean().limit(20);
+
+
+
     const userInfoFromDB = await User.findById(userInfo.userId);
-  if(!userInfoFromDB){
-   return {}
-  }
+    if (!userInfoFromDB) {
+      return {}
+    }
 
-  const subscription = await Subscription.findOne({user:userInfo.userId,status:'active'}).sort({createdAt:-1}).lean()
+    const subscription = await Subscription.findOne({ user: userInfo.userId, status: 'active' }).sort({ createdAt: -1 }).lean()
 
-  console.log('Subscription');
-  
-  // if(!subscription){
-  //   return {}
-  // }
+    console.log('Subscription');
 
-  if(systemMatchedPosts.length >= 20){
+    // if(!subscription){
+    //   return {}
+    // }
+
+    if (systemMatchedPosts.length >= 20) {
+      // send email to user with matched posts
+      console.log("Sending system matched posts email");
+      const template = emailTemplate.jobMatchEmailTemplate({
+        userName: userInfoFromDB.name!,
+        email: userInfoFromDB.email,
+        jobs: systemMatchedPosts as any as IPost[],
+        isPremiumUser: subscription?.name?.includes('Platinum') || subscription?.name?.includes('Gold') || subscription?.name?.includes('Premium'),
+      })
+
+      await emailHelper.sendEmail(template)
+      await User.findByIdAndUpdate(userInfo.userId, { last_job_update: new Date() })
+      return
+    }
+    console.log('sending third matched posts email');
+
+
+    const matchedPosts = await jobspikrHelper.getJobs({
+      jobtitles: userInfo.jobTypes,
+      // location:userInfo.locations,
+      // jobTypes:userInfo.jobLevels,
+      location: userInfo.country,
+      state: userInfo.state,
+      limit: 20
+    })
+    try {
+      await Post.insertMany(matchedPosts.data)
+    } catch (error) {
+      console.log(error);
+
+    }
+
+
+
     // send email to user with matched posts
-    console.log("Sending system matched posts email");
     const template = emailTemplate.jobMatchEmailTemplate({
-      userName:userInfoFromDB.name!,
-      email:userInfoFromDB.email,
-      jobs: systemMatchedPosts as any as IPost[],
-      isPremiumUser:subscription?.name?.includes('Platinum')||subscription?.name?.includes('Gold')|| subscription?.name?.includes('Premium'),
+      userName: userInfoFromDB.name!,
+      email: userInfoFromDB.email,
+      jobs: matchedPosts.data as any as IPost[],
+      isPremiumUser: await subscriptionHelper.isPremiumUser(userInfo.userId),
     })
 
     await emailHelper.sendEmail(template)
-    await User.findByIdAndUpdate(userInfo.userId,{last_job_update:new Date()})
-    return
-  }
-  console.log('sending third matched posts email');
-  
-  
-  const matchedPosts = await jobspikrHelper.getJobs({
-    jobtitles:userInfo.jobTypes,
-    // location:userInfo.locations,
-    // jobTypes:userInfo.jobLevels,
-    location:userInfo.country,
-    state:userInfo.state,
-    limit:20
-  })
-try {
-    await Post.insertMany(matchedPosts.data)
-} catch (error) {
-  console.log(error);
-  
-}
-
-
-  
-  // send email to user with matched posts
-  const template = emailTemplate.jobMatchEmailTemplate({
-    userName:userInfoFromDB.name!,
-    email:userInfoFromDB.email,
-    jobs: matchedPosts.data as any as IPost[],
-    isPremiumUser:await subscriptionHelper.isPremiumUser(userInfo.userId),
-  })
-
-  await emailHelper.sendEmail(template)
-  await User.findByIdAndUpdate(userInfo.userId,{last_job_update:new Date()})
+    await User.findByIdAndUpdate(userInfo.userId, { last_job_update: new Date() })
   } catch (error) {
     console.log(error);
-    
+
   }
 }
 
-const getJobMatchPercentances = async (userId: string,postId: string) => {
+const getJobMatchPercentances = async (userId: string, postId: string) => {
   const cache = await RedisHelper.redisGet(`job_match_percentage:${userId}:${postId}`);
   if (cache) {
     console.log('from cache');
     return cache;
   }
-  const percentage = await AIHelper.getJobMatchPercentances(userId,postId);
+  const percentage = await AIHelper.getJobMatchPercentances(userId, postId);
   await RedisHelper.redisSet(`job_match_percentage:${userId}:${postId}`, percentage);
   return percentage;
 }

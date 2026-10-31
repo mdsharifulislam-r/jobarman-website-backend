@@ -3,6 +3,7 @@ export interface IQuery {
   jobTypes?: string[];
   maxSalary?: number;
   minSalary?: number;
+  seniority?: string[];
   postDate?: string;        // expected format: YYYY-MM-DD
   location?: string[];      // multiple countries
   skill?: string[];
@@ -14,102 +15,121 @@ export interface IQuery {
 export function buildElasticQuery(params: IQuery) {
   const must: any[] = [];
   const must_not: any[] = [];
-  // two days before date 
-  params.location=["United States"];
-  const twoDaysBefore = new Date();
-  twoDaysBefore.setDate(twoDaysBefore.getDate() - 2);
-
-  
+  const phrase = (value: string) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+  const jobtitles = [...new Set((params.jobtitles || []).filter(Boolean))];
+  const jobTypes = [...new Set(
+    (params.jobTypes || [])
+      .filter(Boolean)
+      .map(t => t.split("_").join(" ").toLowerCase())
+  )];
+  const locations = (params.location || []).filter(Boolean);
+  const states = (params.state || []).filter(Boolean);
+  const skills = (params.skill || []).filter(Boolean);
+  const seniority = [...new Set(
+    (params.seniority || [])
+      .filter(Boolean)
+      .map(value => value.split("_").join(" ").toLowerCase())
+  )];
 
   // Job titles
-  if (params.jobtitles?.length) {
-    params.jobtitles= [...new Set(params.jobtitles)];
+  if (jobtitles.length) {
     must.push({
       query_string: {
         fields: ["job_title", "inferred_job_title"],
-        query: params.jobtitles.map(t => `"${t}"`).join(" OR ")
+        query: jobtitles.map(phrase).join(" OR ")
       }
     });
   }
 
   // Job types
-  if (params.jobTypes?.length) {
-    params.jobTypes =[...new Set( params.jobTypes.map(t => t.split("_").join(" ").toLowerCase()))];
-
+  if (jobTypes.length) {
     must.push({
       query_string: {
         default_field: "job_type",
-        query: params.jobTypes.map(t => `"${t}"`).join(" OR ")
+        query: jobTypes.map(phrase).join(" OR ")
+      }
+    });
+  }
+
+  if (seniority.length) {
+    must.push({
+      query_string: {
+        default_field: "inferred_seniority_level",
+        query: seniority.map(phrase).join(" OR ")
       }
     });
   }
 
   // Location (country)
-  if (params.location?.length) {
+  if (locations.length) {
     must.push({
       bool: {
-        should: params.location.map(country => ({
+        should: locations.map(country => ({
           query_string: {
             fields: ["inferred_country"],
-            query: `"${country}"`
+            query: phrase(country)
           }
-        }))
+        })),
+        minimum_should_match: 1
       }
     });
   }
 
   // Location (state)
-  if (params.state?.length) {
+  if (states.length) {
     must.push({
       bool: {
-        should: params.state.map(state => ({
+        should: states.map(state => ({
           query_string: {
             fields: ["inferred_state"],
-            query: `"${state}"`
+            query: phrase(state)
           }
-        }))
+        })),
+        minimum_should_match: 1
       }
     });
   }
 
-  // Post date (last X days or exact date)
-  if (params?.postDate || twoDaysBefore.toISOString().split("T")[0]) {
+  // Apply a date restriction only when the caller supplied one.
+  if (params.postDate) {
     must.push({
       range: {
         post_date: {
-          gte: params.postDate || twoDaysBefore.toISOString().split("T")[0]
+          gte: params.postDate
         }
       }
     });
   }
 
   // Skills
-  if (params.skill?.length) {
+  if (skills.length) {
     must.push({
       query_string: {
         default_field: "inferred_skills",
-        query: params.skill.map(s => `"${s}"`).join(" OR ")
+        query: skills.map(phrase).join(" OR ")
       }
     });
   }
 
-  // Salary range
-  // if (params.minSalary || params.maxSalary) {
-  //   const salaryRange: any = {};
-  //   if (params.minSalary) salaryRange.gte = params.minSalary;
-  //   if (params.maxSalary) salaryRange.lte = params.maxSalary;
+  if (params.minSalary !== undefined) {
+    must.push({
+      range: {
+        inferred_salary_from: { gte: params.minSalary }
+      }
+    });
+  }
 
-  //   must.push({
-  //     range: {
-  //       inferred_salary_from: salaryRange
-  //     }
-  //   });
-  // }
+  if (params.maxSalary !== undefined) {
+    must.push({
+      range: {
+        inferred_salary_to: { lte: params.maxSalary }
+      }
+    });
+  }
 
   must.push({
-    query_string: {
-      default_field: "has_expired",
-      query: false
+    term: {
+      has_expired: false
     }
   });
 
@@ -131,8 +151,8 @@ export function buildElasticQuery(params: IQuery) {
 
  return {
     format: "json",
-    size: params.limit || 50,
-    cursor: params.cursor || undefined  ,
+    size: params.limit ?? 50,
+    cursor: params.cursor,
     search_query_json: {
       bool: {
         must,

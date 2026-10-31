@@ -35,7 +35,9 @@ function getStartDateFromFilter(filter: string): string {
 const getDataByRange = async (
   user: JwtPayload,
   initialQuery: Record<string, any>,
-  query: Record<string, any>
+  query: Record<string, any>,
+  thirdPartyQuery: IQuery = {},
+  category?: string
 ) => {
 
   const page = Number(query.page) || 1;
@@ -87,11 +89,29 @@ const getDataByRange = async (
   }));
   let cursor = 0
   if(data.length < limit) {
-    const address = await mapHelper.getCountryAndStateFromLatLong(lat,lng) as any
-    query.location = address?.state?address.state:address?.country
-    const apiData = await fullfillDataUsingTheThirdPartyApis(data.length,user?.id,limit,query)
-    data.push(...apiData?.data)
-    cursor = apiData?.cursor!
+    const address = await mapHelper.getCountryAndStateFromLatLong(lat,lng) as {
+      country?: string;
+      state?: string;
+    } | string;
+    const locationQuery: IQuery = {
+      ...thirdPartyQuery,
+      ...(typeof address === 'object' && address.country
+        ? { location: [address.country] }
+        : {}),
+      ...(typeof address === 'object' && address.state
+        ? { state: [address.state] }
+        : {}),
+    };
+    const apiData = await fullfillDataUsingTheThirdPartyApis(
+      data.length,
+      user?.id,
+      limit,
+      locationQuery,
+      query?.cursor ? Number(query.cursor) : undefined,
+      category
+    );
+    data.push(...(apiData?.data || []));
+    cursor = apiData?.cursor || 0;
   }
   return {
     data,
@@ -107,17 +127,20 @@ const getDataByRange = async (
 
 
 const fullfillDataUsingTheThirdPartyApis = async (existingDataLength:number,userid:string,limit:number=10,query?:IQuery,cursor?:number,category?:string) => {
-  const needPosts = limit - existingDataLength;
+  const needPosts = Math.max(0, limit - existingDataLength);
 
   if(needPosts > 0) {
     const apiData = await jobspikrHelper.getJobs({
       ...query,
-      limit:needPosts>10?needPosts:10,
+      limit:needPosts,
       cursor
     },category);
-    await kafkaProducer.sendMessage("post", {type:"bulk_insert",data:apiData?.data as any});
+    const jobs = (apiData?.data || []).slice(0, needPosts);
+    if (jobs.length) {
+      await kafkaProducer.sendMessage("post", {type:"bulk_insert",data:jobs as any});
+    }
     return {
-      data:apiData?.data as any,
+      data:jobs as any,
       cursor:apiData.next_cursor
     }
   }

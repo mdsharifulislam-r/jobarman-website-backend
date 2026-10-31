@@ -25,8 +25,29 @@ const getAllCategoryFromDB = async (): Promise<ICategory[]> => {
         {
             $lookup: {
                 from: 'posts',
-                localField: '_id',
-                foreignField: 'category',
+                let: {
+                    categoryId: '$_id',
+                    categoryName: '$name'
+                },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $or: [
+                                    { $eq: ['$category', '$$categoryId'] },
+                                    { $eq: ['$category_string', '$$categoryName'] },
+                                    {
+                                        $regexMatch: {
+                                            input: '$title',
+                                            regex: '$$categoryName',
+                                            options: 'i'
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
                 as: 'posts'
             }
         },
