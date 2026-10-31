@@ -39,7 +39,7 @@ const createPackageIntoDB = async (data:IPackage)=>{
 }
 
 const getAllPackagesFromDB = async (user:JwtPayload,type:string="employee")=>{
-    const initQuery = [USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN].includes(user.role) ? {status:"active"} : {for:type,status:"active"}
+    const initQuery = [USER_ROLES.ADMIN,USER_ROLES.SUPER_ADMIN].includes(user?.role) ? {status:"active"} : {for:type,status:"active"}
     const result = await Package.find(initQuery)
     return result
 }
