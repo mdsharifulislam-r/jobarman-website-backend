@@ -332,6 +332,7 @@ import { jobspikrHelper } from '../helpers/jobspkrHelper';
 import { highDemandJobs } from '../data/jobs';
 import { emailHelper } from '../helpers/emailHelper';
 import { Favourite } from '../app/modules/favourite/favourite.model';
+import { PostServices } from '../app/modules/post/post.service';
 
 const USER_BATCH_SIZE = 40;
 const AUTO_APPLY_CONCURRENCY = 5;
@@ -999,9 +1000,7 @@ const fetchNewData10TimesInDay = async () => {
          * ordered:false allows other valid documents
          * to be inserted even if one duplicate occurs.
          */
-        await Post.insertMany(newJobs, {
-          ordered: false,
-        });
+        await PostServices.bulkInsertPostIntoDB(newJobs, { ordered: false });
       }
 
       console.log(
@@ -1080,9 +1079,7 @@ const fetchNewData = async (
     );
 
     if (newJobs.length) {
-      await Post.insertMany(newJobs, {
-        ordered: false,
-      });
+      await PostServices.bulkInsertPostIntoDB(newJobs, { ordered: false });
     }
 
     console.log(

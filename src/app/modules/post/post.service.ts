@@ -26,9 +26,80 @@ import { Subscription } from '../subscription/subscription.model';
 import { subscriptionHelper } from '../subscription/subscription.helper';
 import { ResumeExtractedData } from '../resume/resume.model';
 
+const getMatchingCategoryIds = (
+  post: Partial<IPost>,
+  categories: Array<{ _id: { toString(): string }; name: string }>
+) => {
+  return categories
+    .filter(category => {
+      const titleMatches =
+        typeof post.title === 'string' &&
+        new RegExp(
+          category.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+          'i'
+        ).test(post.title);
+
+      return (
+        post.category?.toString() === category._id?.toString() ||
+        post.category_string === category.name ||
+        titleMatches
+      );
+    })
+    .map(category => category._id.toString());
+};
+
+const updateCategoryJobCounts = async (
+  previousPost: Partial<IPost>,
+  nextPost: Partial<IPost>,
+  categories: Array<{ _id: { toString(): string }; name: string }>
+) => {
+  const previous = new Set(getMatchingCategoryIds(previousPost, categories));
+  const next = new Set(getMatchingCategoryIds(nextPost, categories));
+  const changes = new Map<string, number>();
+
+  for (const id of previous) {
+    if (!next.has(id)) changes.set(id, -1);
+  }
+  for (const id of next) {
+    if (!previous.has(id)) changes.set(id, 1);
+  }
+
+  await Promise.all(
+    [...changes].map(([id, increment]) =>
+      Category.updateOne({ _id: id }, { $inc: { _job_count: increment } })
+    )
+  );
+};
+
+const incrementCategoryJobCounts = async (
+  posts: IPost[],
+  categories: Array<{ _id: { toString(): string }; name: string }>
+) => {
+  const counts = new Map<string, number>();
+  for (const post of posts) {
+    for (const key of getMatchingCategoryIds(post, categories)) {
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+  }
+
+  if (counts.size) {
+    await Category.bulkWrite(
+      [...counts].map(([id, count]) => ({
+        updateOne: {
+          filter: { _id: id },
+          update: { $inc: { _job_count: count } },
+        },
+      }))
+    );
+  }
+};
+
 const createPostIntoDB = async (post: IPost): Promise<IPost> => {
+  const categories = await Category.find({}).select('name').lean();
   const result = await Post.create(post);
+  await updateCategoryJobCounts({}, post, categories);
   await RedisHelper.keyDelete('post_feed:*');
+  await RedisHelper.keyDelete('all_category:*');
   sendNotifications({
     title: `Your post has been created`,
     message: `Your post has been created successfully`,
@@ -37,7 +108,6 @@ const createPostIntoDB = async (post: IPost): Promise<IPost> => {
     isRead: false,
     receiver: [post?.recruiter!]
   })
-  RedisHelper.keyDelete(`all_category:*`);
   return result;
 };
 
@@ -52,10 +122,16 @@ const updatePostToDB = async (
   if (payload.thumbnail && exist.thumbnail) {
     unlinkFile(exist.thumbnail);
   }
-  const result = await Post.findOneAndUpdate({ _id: id }, payload, {
-    new: true,
-  });
+  const categories = await Category.find({}).select('name').lean();
+  const nextPost = { ...exist.toObject(), ...payload };
+  const result = await Post.findOneAndUpdate(
+    { _id: id },
+    payload,
+    { new: true }
+  );
+  await updateCategoryJobCounts(exist, nextPost, categories);
   await RedisHelper.keyDelete('post_feed:*');
+  await RedisHelper.keyDelete('all_category:*');
 
   return result;
 };
@@ -688,9 +764,32 @@ const getSinglePostDetails = async (id: string) => {
 };
 
 
-const bulkInsertPostIntoDB = async (posts: IPost[]) => {
-  const result = await Post.insertMany(posts);
+const bulkInsertPostIntoDB = async (
+  posts: IPost[],
+  options: { ordered?: boolean } = {}
+) => {
+  const categories = await Category.find({}).select('name').lean();
+  let result: IPost[];
+  try {
+    result = await Post.insertMany(posts, options);
+  } catch (error) {
+    const insertedPosts =
+      error &&
+      typeof error === 'object' &&
+      'insertedDocs' in error &&
+      Array.isArray(error.insertedDocs)
+        ? (error.insertedDocs as IPost[])
+        : [];
+    if (insertedPosts.length) {
+      await incrementCategoryJobCounts(insertedPosts, categories);
+      await RedisHelper.keyDelete('post_feed:*');
+      await RedisHelper.keyDelete('all_category:*');
+    }
+    throw error;
+  }
+  await incrementCategoryJobCounts(result, categories);
   await RedisHelper.keyDelete('post_feed:*');
+  await RedisHelper.keyDelete('all_category:*');
   return result;
 };
 
@@ -758,7 +857,7 @@ const sendEmailForMathchedPosts = async (userInfo: UsersInfoResponse) => {
       limit: 20
     })
     try {
-      await Post.insertMany(matchedPosts.data)
+      await bulkInsertPostIntoDB(matchedPosts.data as any as IPost[])
     } catch (error) {
       console.log(error);
 

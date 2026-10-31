@@ -4,10 +4,25 @@ import { RedisHelper } from '../../../tools/redis/redis.helper';
 import { Post } from '../post/post.model';
 import { CategoryModel, ICategory } from './category.interface';
 import { Category } from './category.model';
+
+const countPostsForCategory = async (id: string, name: string) => {
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return Post.countDocuments({
+        $or: [
+            { category: id },
+            { category_string: name },
+            { title: { $regex: escapedName, $options: 'i' } },
+        ],
+    });
+};
+
 const createCategoryInDB = async (category: ICategory): Promise<ICategory> => {
     const createCategory = await Category.create(category);
+    const jobs = await countPostsForCategory(createCategory._id.toString(), category.name);
+    await Category.updateOne({ _id: createCategory._id }, { $set: { _job_count: jobs } });
     await RedisHelper.keyDelete(`all_category:*`);
-    return createCategory;
+    const { _job_count, ...result } = createCategory.toObject();
+    return result;
 }
 
 const getAllCategoryFromDB = async (): Promise<ICategory[]> => {
@@ -16,57 +31,18 @@ const getAllCategoryFromDB = async (): Promise<ICategory[]> => {
         console.log("from cache");
         return cache
     }
-    const allCategory = await Category.aggregate([
-        {
-            $match: {
-                status: 'active'
-            }
-        },
-        {
-            $lookup: {
-                from: 'posts',
-                let: {
-                    categoryId: '$_id',
-                    categoryName: '$name'
-                },
-                pipeline: [
-                    {
-                        $match: {
-                            $expr: {
-                                $or: [
-                                    { $eq: ['$category', '$$categoryId'] },
-                                    { $eq: ['$category_string', '$$categoryName'] },
-                                    {
-                                        $regexMatch: {
-                                            input: '$title',
-                                            regex: '$$categoryName',
-                                            options: 'i'
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                ],
-                as: 'posts'
-            }
-        },
-        {
-            $project: {
-                name: 1,
-                image: 1,
-                jobs: { $size: '$posts' },
-                status: 1,
-                _id: 1,
-                createdAt: 1
-            }
-        },
-        {
-            $sort: {
-                createdAt: -1
-            }
-        }
-    ])
+    const categories = await Category.find({ status: 'active' })
+        .select('+_job_count')
+        .sort({ createdAt: -1 })
+        .lean();
+    const allCategory = categories.map(category => ({
+        _id: category._id,
+        name: category.name,
+        image: category.image,
+        status: category.status,
+        createdAt: (category as ICategory & { createdAt?: Date }).createdAt,
+        jobs: category._job_count || 0,
+    }));
     await RedisHelper.redisSet(`all_category`, allCategory,{}, 60 * 60);
     return allCategory;
 }
@@ -80,6 +56,10 @@ const updateCategoryInDB = async (id: string, payload: ICategory): Promise<ICate
         unlinkFile(exist.image);
     }
     const updateCategory = await Category.findOneAndUpdate({ _id: id }, payload, { new: true });
+    if (updateCategory && payload.name && payload.name !== exist.name) {
+        const jobs = await countPostsForCategory(id, payload.name);
+        await Category.updateOne({ _id: id }, { $set: { _job_count: jobs } });
+    }
     await RedisHelper.keyDelete(`all_category:*`);
     return updateCategory;
 }
